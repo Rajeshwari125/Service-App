@@ -9,209 +9,186 @@ import {
     Clock,
     Filter,
     Heart,
-    Plus
+    Plus,
+    Tag,
+    Share2,
+    Calendar,
+    Navigation
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { useData, type Service, type Product } from "@/lib/data-context";
+import { useData, type Service, type Rental } from "@/lib/data-context";
 import { BookingModal } from "@/components/booking/booking-modal";
 
 export default function BrowsePage() {
     const params = useParams();
     const router = useRouter();
-    const type = params?.type as string; // 'service' or 'product'
-    const category = params?.category as string;
+    const type = params?.type as string; // 'service' or 'rental'
+    const categoryQuery = params?.category as string;
 
-    const { services, products } = useData();
+    const { services, rentals } = useData();
     const [filterOpen, setFilterOpen] = useState(false);
     const [selectedService, setSelectedService] = useState<Service | null>(null);
     const [bookingOpen, setBookingOpen] = useState(false);
 
     // Determine title from category slug
-    const title = category
-        ? category.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")
+    const title = categoryQuery
+        ? categoryQuery.split("-").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(" ")
         : "Browse";
 
     const isService = type === "service";
 
     // Filter items based on category
-    // Note: mock data categories are lowercase
     const items = isService
-        ? services.filter(s => s.category.toLowerCase().includes(category.toLowerCase()) || category === "all")
-        : products.filter(p => p.category.toLowerCase().includes(category.toLowerCase()) || category === "all");
+        ? services.filter(s => s.category.toLowerCase().includes(categoryQuery.toLowerCase()) || categoryQuery === "all")
+        : rentals.filter(r => r.category.toLowerCase().includes(categoryQuery.toLowerCase()) || categoryQuery === "all");
 
     const handleBook = (service: Service) => {
         setSelectedService(service);
         setBookingOpen(true);
     };
 
-    const handleAddToCart = (name: string) => {
-        toast.success(`${name} added to cart`, {
-            description: "Continue shopping or proceed to checkout."
+    const handleRent = (rental: Rental) => {
+        toast.success(`Booking process for ${(rental as any).name} initiated!`, {
+            description: "Opening rental scheduler..."
         });
     };
 
     return (
-        <div className="flex min-h-screen flex-col bg-background pb-20">
-            {/* Header */}
-            <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                <div className="flex items-center gap-3 border-b border-border px-4 py-3">
-                    <Link
-                        href="/"
-                        className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary text-foreground transition-colors hover:bg-secondary/80"
-                    >
-                        <ArrowLeft size={20} />
-                    </Link>
-                    <div className="flex-1">
-                        <h1 className="text-lg font-bold text-foreground">{title}</h1>
-                        <p className="text-xs text-muted-foreground capitalize">{type} • {items.length} results</p>
+        <div className="flex h-full flex-col bg-slate-50/50 animate-fade-in overflow-hidden">
+            {/* Ultra Premium Header */}
+            <div className="bg-white px-6 pt-10 pb-4 border-b border-slate-100 shadow-sm relative z-20">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <Link
+                            href="/"
+                            className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-xl active:scale-90 transition-all font-black"
+                        >
+                            <ArrowLeft size={20} />
+                        </Link>
+                        <div>
+                            <h1 className="text-xl font-black text-slate-900 tracking-tight">{title}</h1>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{type} Collections • {items.length} Units</p>
+                        </div>
                     </div>
                     <button
                         onClick={() => setFilterOpen(!filterOpen)}
-                        className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm"
+                        className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-50 text-slate-400 border border-slate-100 shadow-sm active:scale-90 transition-all"
                     >
                         <Filter size={18} />
                     </button>
                 </div>
 
-                {/* Quick Filters (Horizontal Scroll) */}
-                <div className="flex gap-2 overflow-x-auto px-4 py-3 pb-2 scrollbar-hide">
-                    <button className="flex-shrink-0 rounded-full bg-primary px-4 py-1.5 text-xs font-medium text-primary-foreground shadow-sm">
-                        All
+                {/* Horizontal Category Pill Scroll */}
+                <div className="flex gap-3 overflow-x-auto py-6 scrollbar-hide">
+                    <button className="flex-shrink-0 px-6 py-2.5 rounded-2xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-slate-900/10 active:scale-95 transition-all">
+                        Discover All
                     </button>
-                    <button className="flex-shrink-0 rounded-full border border-border bg-card px-4 py-1.5 text-xs font-medium text-foreground">
-                        Top Rated
+                    <button className="flex-shrink-0 px-6 py-2.5 rounded-2xl bg-white border border-slate-100 text-slate-400 text-[10px] font-black uppercase tracking-widest hover:text-slate-900 active:scale-95 transition-all">
+                        Premium Tier
                     </button>
-                    <button className="flex-shrink-0 rounded-full border border-border bg-card px-4 py-1.5 text-xs font-medium text-foreground">
-                        Price Low to High
-                    </button>
-                    <button className="flex-shrink-0 rounded-full border border-border bg-card px-4 py-1.5 text-xs font-medium text-foreground">
-                        Nearest
+                    <button className="flex-shrink-0 px-6 py-2.5 rounded-2xl bg-white border border-slate-100 text-slate-400 text-[10px] font-black uppercase tracking-widest hover:text-slate-900 active:scale-95 transition-all">
+                        Best Value
                     </button>
                 </div>
             </div>
 
-            {/* Content Grid */}
-            <div className="p-4">
-                <div className="grid gap-4 sm:grid-cols-2">
-                    {items.map((item) => (
-                        isService ? (
-                            // SERVICE CARD
-                            <div key={item.id} className="group relative overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all hover:shadow-md">
-                                <div className="flex p-4 gap-4">
-                                    {/* Image */}
-                                    <div className="relative h-24 w-24 flex-shrink-0 overflow-hidden rounded-xl bg-secondary">
-                                        <img
-                                            src={(item as Service).image}
-                                            alt={(item as Service).title}
-                                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
-                                        />
-                                        <div className="absolute bottom-1 right-1 rounded-full bg-blue-500 p-0.5 text-white">
-                                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                                                <polyline points="20 6 9 17 4 12"></polyline>
-                                            </svg>
-                                        </div>
+            {/* List/Grid Content */}
+            <div className="flex-1 overflow-y-auto px-4 py-6 scrollbar-hide pb-32">
+                <div className="flex flex-col gap-6">
+                    {items.map((item, idx) => (
+                        <div
+                            key={item.id}
+                            className="group relative overflow-hidden rounded-[2.5rem] bg-white border border-white shadow-xl shadow-slate-200/50 animate-slide-up"
+                            style={{ animationDelay: `${idx * 100}ms` }}
+                        >
+                            {/* Card Media Section */}
+                            <div className="relative h-64 w-full overflow-hidden bg-slate-100">
+                                <img
+                                    src={(item as any).image}
+                                    alt={(item as any).name || (item as any).title}
+                                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                />
+                                <div className="absolute top-4 left-4 flex gap-2">
+                                    <div className="backdrop-blur-md bg-black/30 border border-white/20 text-white text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl">
+                                        {isService ? 'Verified Service' : 'Premium Asset'}
                                     </div>
-
-                                    {/* Details */}
-                                    <div className="flex flex-1 flex-col justify-between">
-                                        <div>
-                                            <div className="flex justify-between items-start">
-                                                <h3 className="font-bold text-foreground line-clamp-1">{(item as Service).title}</h3>
-                                                <div className="flex items-center gap-1 rounded-md bg-[#fefcbf] px-1.5 py-0.5 text-[10px] font-bold text-[#d69e2e]">
-                                                    {(item as Service).rating} <Star size={8} fill="currentColor" />
-                                                </div>
-                                            </div>
-                                            <p className="text-xs text-muted-foreground">{(item as Service).providerName} • {(item as Service).reviews} reviews</p>
-
-                                            <div className="mt-2 flex items-center gap-3 text-xs text-muted-foreground">
-                                                <div className="flex items-center gap-1">
-                                                    <MapPin size={12} />
-                                                    {(item as Service).location}
-                                                </div>
-                                                <div className="flex items-center gap-1">
-                                                    <Clock size={12} />
-                                                    {(item as Service).availability}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Footer / Action */}
-                                <div className="border-t border-border bg-secondary/30 px-4 py-3 flex items-center justify-between">
-                                    <div className="flex items-baseline gap-1">
-                                        <span className="text-lg font-bold text-foreground">₹{(item as Service).price}</span>
-                                        <span className="text-xs text-muted-foreground">/{(item as Service).priceUnit}</span>
-                                    </div>
-                                    <button
-                                        onClick={() => handleBook(item as Service)}
-                                        className="rounded-xl bg-primary px-5 py-2 text-xs font-bold text-primary-foreground shadow-sm transition-transform active:scale-95 hover:bg-primary/90"
-                                    >
-                                        Book Now
-                                    </button>
-                                </div>
-                            </div>
-                        ) : (
-                            // PRODUCT CARD
-                            <div key={item.id} className="group relative overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all hover:shadow-md">
-                                <div className="absolute top-3 right-3 z-10">
-                                    <button className="flex h-8 w-8 items-center justify-center rounded-full bg-white/80 backdrop-blur text-gray-500 hover:text-red-500">
-                                        <Heart size={16} />
-                                    </button>
-                                </div>
-
-                                {/* Image */}
-                                <div className="relative aspect-square w-full overflow-hidden bg-secondary/50">
-                                    <img
-                                        src={(item as Product).image}
-                                        alt={(item as Product).name}
-                                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                                    />
-                                    {(item as Product).isBestSeller && (
-                                        <div className="absolute left-3 top-3 rounded-lg bg-yellow-400 px-2 py-1 text-[10px] font-bold text-black shadow-sm">
-                                            Best Seller
+                                    {(item as any).isBestSeller && (
+                                        <div className="bg-amber-400 text-amber-950 text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl shadow-lg">
+                                            Top Rated
                                         </div>
                                     )}
                                 </div>
+                                <button className="absolute top-4 right-4 h-10 w-10 flex items-center justify-center rounded-2xl bg-white/20 backdrop-blur-md border border-white/20 text-white hover:bg-rose-500 hover:text-white transition-all">
+                                    <Heart size={18} />
+                                </button>
+                            </div>
 
-                                <div className="p-4">
-                                    <div className="mb-2 flex items-center justify-between">
-                                        <p className="text-xs font-medium text-muted-foreground capitalize">{category.replace(/-/g, ' ')}</p>
-                                        <div className="flex items-center gap-1 text-xs font-semibold text-foreground">
-                                            <Star size={12} className="text-yellow-400" fill="currentColor" /> {(item as Product).rating}
+                            {/* Card Content Section */}
+                            <div className="p-6">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <p className="text-[10px] font-black text-primary uppercase tracking-widest">{(item as any).providerName || title}</p>
+                                            <div className="h-1 w-1 rounded-full bg-slate-300" />
+                                            <div className="flex items-center gap-1 text-[10px] font-black text-amber-500 uppercase">
+                                                <Star size={10} fill="currentColor" /> {(item as any).rating}
+                                            </div>
                                         </div>
+                                        <h3 className="text-xl font-black text-slate-900 tracking-tight leading-tight">{(item as any).name || (item as any).title}</h3>
                                     </div>
-                                    <h3 className="mb-1 text-base font-bold text-foreground line-clamp-1">{(item as Product).name}</h3>
-                                    <p className="mb-3 text-xs text-muted-foreground line-clamp-2">{(item as Product).description}</p>
-
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-baseline gap-1">
-                                            <span className="text-lg font-bold text-foreground">₹{(item as Product).price}</span>
-                                            <span className="text-xs text-muted-foreground">/{(item as Product).priceUnit}</span>
-                                        </div>
-                                        <button
-                                            onClick={() => handleAddToCart((item as Product).name)}
-                                            className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm transition-transform active:scale-95 hover:bg-primary/90"
-                                        >
-                                            <Plus size={20} />
-                                        </button>
+                                    <div className="flex flex-col items-end">
+                                        <p className="text-lg font-black text-slate-900 leading-none">₹{(item as any).price}</p>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter mt-1">Per {(item as any).priceUnit || (item as any).durationUnit || 'Slot'}</p>
                                     </div>
                                 </div>
+
+                                <div className="flex items-center gap-4 py-4 border-t border-slate-50 mb-4">
+                                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500">
+                                        <MapPin size={12} className="text-slate-300" /> Madras City
+                                    </div>
+                                    <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500">
+                                        <Clock size={12} className="text-slate-300" /> Available Now
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3">
+                                    <button
+                                        onClick={() => isService ? handleBook(item as Service) : handleRent(item as any)}
+                                        className="flex-1 py-4 rounded-[1.5rem] bg-slate-900 text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-slate-950/20 active:scale-95 transition-all"
+                                    >
+                                        {isService ? 'Request Booking' : 'Reserve Unit'}
+                                    </button>
+                                    <button className="h-14 w-14 flex items-center justify-center rounded-[1.5rem] border border-slate-100 text-slate-400 hover:text-slate-900 hover:bg-slate-50 transition-all active:scale-95">
+                                        <Share2 size={20} />
+                                    </button>
+                                </div>
                             </div>
-                        )
+                        </div>
                     ))}
 
                     {items.length === 0 && (
-                        <div className="col-span-full flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
-                            <p>No items found in this category.</p>
-                            <Link href="/" className="mt-4 text-primary hover:underline">Go back home</Link>
+                        <div className="flex flex-col items-center justify-center py-24 px-10 text-center animate-fade-in bg-white rounded-[3rem] border border-slate-100">
+                            <div className="h-24 w-24 rounded-[2.5rem] bg-slate-50 flex items-center justify-center mb-6">
+                                <Filter size={40} className="text-slate-100" />
+                            </div>
+                            <h3 className="text-xl font-black text-slate-900 tracking-tight">Zero Matches</h3>
+                            <p className="mt-2 text-xs font-bold text-slate-400 leading-relaxed max-w-[200px]">
+                                We couldn't find any {type} listings in the {title} category right now.
+                            </p>
+                            <Link
+                                href="/"
+                                className="mt-10 flex items-center gap-3 rounded-[2rem] bg-slate-900 px-10 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-white shadow-2xl active:scale-95 transition-all"
+                            >
+                                Reset Discovery
+                                <Navigation size={14} className="rotate-90 text-primary" />
+                            </Link>
                         </div>
                     )}
                 </div>
             </div>
 
-            {/* Booking Modal */}
+            {/* Booking Modal (For Services) */}
             <BookingModal
                 service={selectedService}
                 open={bookingOpen}

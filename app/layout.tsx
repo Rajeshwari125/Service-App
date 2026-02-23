@@ -4,6 +4,8 @@ import { Inter, Space_Mono } from "next/font/google";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/lib/auth-context";
 import { DataProvider } from "@/lib/data-context";
+import { ReviewProvider } from "@/lib/review-context";
+import { ThemeProvider } from "@/lib/theme-context";
 
 import "./globals.css";
 
@@ -34,12 +36,22 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${spaceMono.variable}`}>
-      <body className="font-sans antialiased">
-        <AuthProvider>
-          <DataProvider>{children}</DataProvider>
-        </AuthProvider>
-        <Toaster />
+    <html lang="en" className={`${inter.variable} ${spaceMono.variable}`} suppressHydrationWarning>
+      <body className="font-sans antialiased bg-slate-950">
+        <ThemeProvider>
+          <AuthProvider>
+            <DataProvider>
+              <ReviewProvider>
+                <div className="flex min-h-screen flex-col items-center justify-center">
+                  <div className="relative flex h-screen w-full max-w-md flex-col overflow-hidden bg-background shadow-2xl">
+                    {children}
+                  </div>
+                </div>
+              </ReviewProvider>
+            </DataProvider>
+          </AuthProvider>
+        </ThemeProvider>
+        <Toaster position="top-center" richColors />
       </body>
     </html>
   );

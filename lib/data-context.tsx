@@ -26,7 +26,7 @@ export interface Service {
     availability: string;
 }
 
-export interface Product {
+export interface Rental {
     id: string;
     name: string;
     description: string;
@@ -36,8 +36,8 @@ export interface Product {
     rating: number;
     reviews: number;
     image: string;
-    deliveryTime: string;
-    isBestSeller: boolean;
+    durationUnit: string; // e.g., "hour", "day", "week"
+    isAvailable: boolean;
 }
 
 export interface Booking {
@@ -52,15 +52,16 @@ export interface Booking {
     time: string;
     status: "Pending" | "Accepted" | "Completed" | "Rejected" | "Cancelled" | "Delivered" | "On the way";
     amount: number;
-    type: "service" | "product"; // Simplify to include product orders
-    items?: string[]; // For products
+    type: "service" | "rental";
+    items?: string[];
 }
 
 interface DataContextType {
     services: Service[];
-    products: Product[];
+    rentals: Rental[];
     bookings: Booking[];
     addService: (service: Omit<Service, "id" | "rating" | "reviews">) => void;
+    addRental: (rental: Omit<Rental, "id" | "rating" | "reviews">) => void;
     addBooking: (booking: Omit<Booking, "id" | "status">) => void;
     updateBookingStatus: (id: string, status: Booking["status"]) => void;
     getProviderBookings: (providerId: string) => Booking[];
@@ -70,105 +71,47 @@ interface DataContextType {
 const DataContext = createContext<DataContextType | null>(null);
 
 // Initial Mock Data
-const INITIAL_SERVICES: Service[] = [
-    {
-        id: "svc-1",
-        providerId: "emp-1001",
-        providerName: "Rahul Sharma",
-        title: "Expert Plumbing Service",
-        category: "plumbing",
-        price: 499,
-        priceUnit: "visit",
-        description: "Fixing leaks, installing taps, and general plumbing repairs.",
-        location: "Sector 15, Noida",
-        image: "https://images.unsplash.com/photo-1542909168-82c3e7fdca5c?q=80&w=400&h=300&auto=format&fit=crop",
-        rating: 4.8,
-        reviews: 124,
-        availability: "Available Today",
-    },
-    {
-        id: "svc-2",
-        providerId: "emp-1002",
-        providerName: "A2Z Home Services",
-        title: "Full Home Electrician",
-        category: "electrician",
-        price: 350,
-        priceUnit: "hour",
-        description: "Wiring, switch installation, and electrical fault repair.",
-        location: "MG Road, Pune",
-        image: "https://images.unsplash.com/photo-1581578731117-104f2a417954?q=80&w=400&h=300&auto=format&fit=crop",
-        rating: 4.5,
-        reviews: 89,
-        availability: "Next Slot: 2 PM",
-    },
-    {
-        id: "svc-3",
-        providerId: "emp-1003",
-        providerName: "CleanPro Services",
-        title: "Deep Home Cleaning",
-        category: "cleaning",
-        price: 1500,
-        priceUnit: "unit",
-        description: "Complete deep cleaning of your home including kitchen and bathrooms.",
-        location: "Indiranagar, Bangalore",
-        image: "https://images.unsplash.com/photo-1581578731117-104f2a417954?q=80&w=400&h=300&auto=format&fit=crop", // Placeholder
-        rating: 4.9,
-        reviews: 210,
-        availability: "Tomorrow",
-    }
-];
-
-const INITIAL_PRODUCTS: Product[] = [
-    {
-        id: "pr-1",
-        name: "Organic Fresh Tomatoes",
-        description: "Farm fresh, pesticide free tomatoes",
-        price: 45,
-        priceUnit: "kg",
-        category: "vegetables",
-        rating: 4.7,
-        reviews: 56,
-        image: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?q=80&w=200&h=200&auto=format&fit=crop",
-        deliveryTime: "30 mins",
-        isBestSeller: true
-    },
-    {
-        id: "pr-2",
-        name: "Fresh Spinach (Palak)",
-        description: "Cleaned and packed fresh spinach",
-        price: 30,
-        priceUnit: "bundle",
-        category: "vegetables",
-        rating: 4.5,
-        reviews: 32,
-        image: "https://images.unsplash.com/photo-1576045057995-568f588f82fb?q=80&w=200&h=200&auto=format&fit=crop",
-        deliveryTime: "45 mins",
-        isBestSeller: false
-    },
-];
+const INITIAL_SERVICES: Service[] = [];
+const INITIAL_RENTALS: Rental[] = [];
 
 export function DataProvider({ children }: { children: ReactNode }) {
     const [services, setServices] = useState<Service[]>(INITIAL_SERVICES);
-    const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
+    const [rentals, setRentals] = useState<Rental[]>(INITIAL_RENTALS);
     const [bookings, setBookings] = useState<Booking[]>([]);
+    const [isLoaded, setIsLoaded] = useState(false);
 
     // Load from LocalStorage on mount
     useEffect(() => {
-        const storedServices = localStorage.getItem("services");
+        const storedServices = localStorage.getItem("servicehub_services");
         if (storedServices) setServices(JSON.parse(storedServices));
 
-        const storedBookings = localStorage.getItem("bookings");
+        const storedBookings = localStorage.getItem("servicehub_bookings");
         if (storedBookings) setBookings(JSON.parse(storedBookings));
+
+        const storedRentals = localStorage.getItem("servicehub_rentals");
+        if (storedRentals) setRentals(JSON.parse(storedRentals));
+
+        setIsLoaded(true);
     }, []);
 
-    // Save to LocalStorage on change
+    // Save to LocalStorage on change (ONLY after initial load)
     useEffect(() => {
-        localStorage.setItem("services", JSON.stringify(services));
-    }, [services]);
+        if (isLoaded) {
+            localStorage.setItem("servicehub_services", JSON.stringify(services));
+        }
+    }, [services, isLoaded]);
 
     useEffect(() => {
-        localStorage.setItem("bookings", JSON.stringify(bookings));
-    }, [bookings]);
+        if (isLoaded) {
+            localStorage.setItem("servicehub_bookings", JSON.stringify(bookings));
+        }
+    }, [bookings, isLoaded]);
+
+    useEffect(() => {
+        if (isLoaded) {
+            localStorage.setItem("servicehub_rentals", JSON.stringify(rentals));
+        }
+    }, [rentals, isLoaded]);
 
     const addService = useCallback((serviceData: Omit<Service, "id" | "rating" | "reviews">) => {
         const newService: Service = {
@@ -178,6 +121,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
             reviews: 0,
         };
         setServices((prev) => [...prev, newService]);
+    }, []);
+
+    const addRental = useCallback((rentalData: Omit<Rental, "id" | "rating" | "reviews">) => {
+        const newRental: Rental = {
+            ...rentalData,
+            id: `rnt-${Date.now()}`,
+            rating: 0,
+            reviews: 0,
+        };
+        setRentals((prev) => [...prev, newRental]);
     }, []);
 
     const addBooking = useCallback((bookingData: Omit<Booking, "id" | "status">) => {
@@ -207,9 +160,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
         <DataContext.Provider
             value={{
                 services,
-                products,
+                rentals,
                 bookings,
                 addService,
+                addRental,
                 addBooking,
                 updateBookingStatus,
                 getProviderBookings,

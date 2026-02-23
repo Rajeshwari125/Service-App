@@ -95,35 +95,34 @@ export function OtpVerification({
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="text-center">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-accent/10">
-          <ShieldCheck size={32} className="text-accent" />
+    <div className="flex flex-col gap-8 animate-fade-in">
+      <div className="text-center flex flex-col items-center gap-4">
+        <div className="flex h-20 w-20 items-center justify-center rounded-[2rem] bg-accent/5 border border-accent/10 shadow-inner">
+          <ShieldCheck size={40} className="text-accent animate-pulse" />
         </div>
-        <h1 className="text-2xl font-bold text-foreground">Verify OTP</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          We sent a verification code to
-        </p>
-        <p className="text-sm font-semibold text-foreground">
-          +91 {mobile}
-        </p>
+        <div className="flex flex-col gap-2">
+          <h1 className="text-3xl font-black text-foreground tracking-tight">Security Code</h1>
+          <p className="text-sm text-muted-foreground font-medium max-w-[240px] leading-relaxed">
+            We sent a verification code to your device ending in <span className="font-black text-foreground">{mobile.slice(-4)}</span>
+          </p>
+        </div>
       </div>
 
       {/* OTP Display for Demo */}
-      <div className="rounded-xl border border-accent/30 bg-accent/5 p-3 text-center">
-        <p className="text-xs text-muted-foreground">Demo OTP Code</p>
-        <p className="text-2xl font-bold tracking-[0.5em] text-accent">
+      <div className="rounded-3xl border border-accent/20 bg-accent/5 p-4 text-center shadow-sm">
+        <p className="text-[10px] font-black uppercase tracking-widest text-accent/60 mb-1">Developer Sandbox OTP</p>
+        <p className="text-3xl font-black tracking-[0.4em] text-accent pl-[0.4em]">
           {generatedOtp}
         </p>
       </div>
 
       {error && (
-        <div className="rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive">
+        <div className="rounded-2xl bg-destructive/5 border border-destructive/10 px-4 py-3 text-xs font-bold text-destructive animate-slide-up text-center">
           {error}
         </div>
       )}
 
-      <div className="flex justify-center gap-3">
+      <div className="flex justify-center gap-4">
         {otp.map((digit, i) => (
           <input
             key={i}
@@ -136,43 +135,45 @@ export function OtpVerification({
               handleChange(i, e.target.value.replace(/\D/g, ""))
             }
             onKeyDown={(e) => handleKeyDown(i, e)}
-            className="h-14 w-14 rounded-xl border-2 border-border bg-card text-center text-xl font-bold text-foreground outline-none transition-colors focus:border-accent"
+            className="h-16 w-14 rounded-2xl border-2 border-border bg-card text-center text-2xl font-black text-foreground outline-none transition-all focus:border-accent focus:ring-4 focus:ring-accent/10 shadow-sm"
             aria-label={`OTP digit ${i + 1}`}
           />
         ))}
       </div>
 
-      <Button
-        onClick={handleVerify}
-        className="h-12 rounded-xl bg-primary text-primary-foreground text-base font-semibold"
-      >
-        {mode === "register" ? "Verify & Create Account" : "Verify & Login"}
-      </Button>
+      <div className="flex flex-col gap-4 mt-2">
+        <Button
+          onClick={handleVerify}
+          className="h-16 rounded-2xl bg-primary text-primary-foreground text-sm font-black uppercase tracking-widest shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all active:scale-[0.98]"
+        >
+          {mode === "register" ? "Confirm & Finalize" : "Secure Login"}
+        </Button>
 
-      <div className="text-center">
-        {timer > 0 ? (
-          <p className="text-sm text-muted-foreground">
-            Resend code in{" "}
-            <span className="font-semibold text-foreground">{timer}s</span>
-          </p>
-        ) : (
+        <div className="flex flex-col items-center gap-4">
+          {timer > 0 ? (
+            <div className="flex items-center gap-2 px-4 py-2 bg-muted/50 rounded-full border border-border/50">
+              <span className="text-[10px] font-black text-muted-foreground uppercase tracking-tighter">Resend available in</span>
+              <span className="text-xs font-black text-foreground">{timer}s</span>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={handleResend}
+              className="text-xs font-black text-accent uppercase tracking-widest hover:underline active:scale-95 transition-all"
+            >
+              Resend New Code
+            </button>
+          )}
+
           <button
             type="button"
-            onClick={handleResend}
-            className="text-sm font-semibold text-accent"
+            onClick={onBack}
+            className="text-xs font-bold text-muted-foreground uppercase tracking-widest hover:text-foreground transition-all"
           >
-            Resend OTP
+            ← Incorrect Number
           </button>
-        )}
+        </div>
       </div>
-
-      <button
-        type="button"
-        onClick={onBack}
-        className="text-sm text-muted-foreground"
-      >
-        {mode === "register" ? "Back to registration" : "Back to login"}
-      </button>
     </div>
   );
 }

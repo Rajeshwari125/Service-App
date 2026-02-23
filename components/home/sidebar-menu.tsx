@@ -4,14 +4,17 @@ import { useAuth } from "@/lib/auth-context";
 import {
   X,
   Home,
-  ShoppingBag,
+  Briefcase,
   Heart,
-  Clock,
+  History,
   Settings,
   HelpCircle,
   LogOut,
   User,
   Shield,
+  CreditCard,
+  Bell,
+  Navigation,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -27,11 +30,13 @@ export function SidebarMenu({ isOpen, onClose }: SidebarMenuProps) {
 
   const menuItems = [
     { icon: Home, label: "Home", href: "/" },
-    { icon: ShoppingBag, label: "My Orders", href: "/orders" },
+    { icon: Briefcase, label: "My Bookings", href: "/orders" },
     { icon: Heart, label: "Favourites", href: "/favourites" },
-    { icon: Clock, label: "History", href: "/history" },
+    { icon: Bell, label: "Notifications", href: "/notifications" },
+    { icon: History, label: "Job History", href: "/history" },
+    { icon: CreditCard, label: "Payments", href: "/payments" },
     { icon: Settings, label: "Settings", href: "/settings" },
-    { icon: HelpCircle, label: "Help & Support", href: "/support" },
+    { icon: HelpCircle, label: "Help Center", href: "/support" },
   ];
 
   const handleLogout = () => {
@@ -44,7 +49,7 @@ export function SidebarMenu({ isOpen, onClose }: SidebarMenuProps) {
       {/* Overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-50 bg-foreground/30 backdrop-blur-sm"
+          className="absolute inset-0 z-50 bg-slate-950/40 backdrop-blur-md animate-fade-in"
           onClick={onClose}
           onKeyDown={(e) => e.key === "Escape" && onClose()}
           role="button"
@@ -55,91 +60,123 @@ export function SidebarMenu({ isOpen, onClose }: SidebarMenuProps) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-0 z-50 flex h-full w-72 flex-col bg-card shadow-2xl transition-transform duration-300 ${isOpen ? "translate-x-0" : "-translate-x-full"
+        className={`absolute left-0 top-0 z-[60] flex h-full w-[85%] max-w-[320px] flex-col bg-background shadow-2xl transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1) ${isOpen ? "translate-x-0" : "-translate-x-full"
           }`}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between bg-primary px-4 py-6">
-          <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary-foreground/15">
-              {user?.role === "admin" ? (
-                <Shield size={24} className="text-primary-foreground" />
-              ) : (
-                <User size={24} className="text-primary-foreground" />
-              )}
+        {/* Premium Header */}
+        <div className="relative overflow-hidden bg-slate-950 px-6 py-10 text-white">
+          <div className="relative z-10 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex h-16 w-16 items-center justify-center rounded-[2rem] bg-gradient-to-br from-primary to-accent p-[2px]">
+                <div className="flex h-full w-full items-center justify-center rounded-[1.9rem] bg-slate-900 border border-white/10">
+                  {user?.role === "admin" ? (
+                    <Shield size={28} className="text-primary" />
+                  ) : (
+                    <User size={28} className="text-primary" />
+                  )}
+                </div>
+              </div>
+              <div className="flex flex-col">
+                <h2 className="text-xl font-black tracking-tight leading-none mb-1">{user?.name || "Guest"}</h2>
+                <p className="text-[10px] font-black uppercase tracking-widest text-white/40">
+                  {user?.role === "employee"
+                    ? `Partner ID: ${user.employeeId}`
+                    : user?.role === "admin"
+                      ? "System Admin"
+                      : `+91 ${user?.mobile}`}
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="font-bold text-primary-foreground">{user?.name}</p>
-              <p className="text-xs text-primary-foreground/70">
-                {user?.role === "employee"
-                  ? `EMP ID: ${user.employeeId}`
-                  : user?.role === "admin"
-                    ? "Administrator"
-                    : `+91 ${user?.mobile}`}
-              </p>
+            <button
+              type="button"
+              onClick={onClose}
+              className="group flex h-10 w-10 items-center justify-center rounded-2xl bg-white/5 hover:bg-white/10 transition-all border border-white/5"
+            >
+              <X size={20} className="text-white/60 group-hover:text-white group-hover:rotate-90 transition-all duration-300" />
+            </button>
+          </div>
+
+          {/* Role Badge */}
+          <div className="relative z-10 mt-6 flex">
+            <div className={`flex items-center gap-2 rounded-xl px-3 py-1.5 text-[9px] font-black uppercase tracking-wider border shadow-sm ${user?.role === "admin"
+                ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                : user?.role === "employee"
+                  ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                  : "bg-primary/20 text-primary-foreground border-white/10"
+              }`}>
+              <div className={`h-1.5 w-1.5 rounded-full animate-pulse ${user?.role === "admin" ? "bg-rose-400" : user?.role === "employee" ? "bg-emerald-400" : "bg-primary"
+                }`} />
+              {user?.role || "Visitor"} Member
             </div>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-primary-foreground/80"
-            aria-label="Close menu"
-          >
-            <X size={20} />
-          </button>
+
+          {/* Decorative Background */}
+          <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-primary/20 blur-3xl" />
+          <div className="absolute -left-10 -bottom-10 h-32 w-32 rounded-full bg-blue-500/10 blur-2xl" />
         </div>
 
-        {/* Role Badge */}
-        <div className="px-4 pt-4 pb-2">
-          <span
-            className={`inline-block rounded-full px-3 py-1 text-xs font-bold ${user?.role === "admin"
-              ? "bg-destructive/10 text-destructive"
-              : user?.role === "employee"
-                ? "bg-accent/10 text-accent"
-                : "bg-primary/10 text-primary"
-              }`}
-          >
-            {user?.role === "admin"
-              ? "Admin Panel"
-              : user?.role === "employee"
-                ? "Employee"
-                : "Customer"}
-          </span>
+        {/* Navigation Section */}
+        <div className="flex flex-1 flex-col overflow-y-auto px-4 py-8 scrollbar-hide">
+          <p className="mb-4 px-2 text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/50">Main Navigator</p>
+          <nav className="flex flex-col gap-2">
+            {menuItems.map((item, idx) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href;
+
+              return (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  onClick={onClose}
+                  className={`group relative flex items-center gap-4 rounded-2xl px-4 py-4 transition-all duration-300 animate-slide-up ${isActive
+                      ? "bg-primary/5 text-primary shadow-sm"
+                      : "text-slate-600 hover:bg-slate-50"
+                    }`}
+                  style={{ animationDelay: `${idx * 50}ms` }}
+                >
+                  {isActive && (
+                    <div className="absolute left-0 h-6 w-1 rounded-r-full bg-primary" />
+                  )}
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-xl transition-all ${isActive ? "bg-primary/10 text-primary scale-110" : "bg-slate-100 text-slate-400 group-hover:bg-slate-200 group-hover:text-slate-900"
+                    }`}>
+                    <Icon size={20} className={isActive ? "stroke-[2.5px]" : "stroke-[2px]"} />
+                  </div>
+                  <span className={`text-sm font-black tracking-tight ${isActive ? "text-slate-900" : "text-slate-600 group-hover:text-slate-900"}`}>
+                    {item.label}
+                  </span>
+
+                  {!isActive && (
+                    <div className="ml-auto opacity-0 group-hover:opacity-100 transition-all">
+                      <Navigation size={14} className="rotate-90 text-slate-300" />
+                    </div>
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
         </div>
 
-        {/* Menu Items */}
-        <nav className="flex-1 overflow-y-auto px-2 py-2">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.href;
-
-            return (
-              <Link
-                key={item.label}
-                href={item.href}
-                onClick={onClose}
-                className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm transition-colors ${isActive
-                  ? "bg-primary/10 font-bold text-primary"
-                  : "text-foreground hover:bg-muted"
-                  }`}
-              >
-                <Icon size={20} className={isActive ? "text-primary" : "text-muted-foreground"} />
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* Logout */}
-        <div className="border-t border-border p-4">
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-destructive transition-colors hover:bg-destructive/5"
-          >
-            <LogOut size={20} />
-            Sign Out
-          </button>
+        {/* Luxury Footer Card */}
+        <div className="p-4 border-t border-slate-50">
+          <div className="bg-slate-50 rounded-[2rem] p-4 flex flex-col gap-4 border border-slate-100/50">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-slate-400">
+                <HelpCircle size={18} />
+              </div>
+              <div>
+                <p className="text-xs font-black text-slate-900 leading-none">Need assistance?</p>
+                <p className="text-[10px] font-bold text-slate-400 mt-1">24/7 Digital Support</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex w-full items-center justify-center gap-3 rounded-xl bg-white border border-rose-100 px-4 py-3 text-xs font-black uppercase tracking-widest text-rose-500 shadow-sm transition-all hover:bg-rose-500 hover:text-white active:scale-95"
+            >
+              <LogOut size={16} />
+              Terminate Session
+            </button>
+          </div>
         </div>
       </aside>
     </>

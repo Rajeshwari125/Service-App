@@ -14,6 +14,7 @@ import {
   Bell,
   Plus,
   User,
+  Package,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -21,11 +22,13 @@ import { toast } from "sonner";
 export function EmployeeHomeContent() {
   const router = useRouter();
   const { user } = useAuth();
-  const { bookings, services } = useData();
+  const { bookings, services, rentals } = useData();
 
   // Stats
   const providerBookings = bookings.filter(b => b.providerId === user?.id);
   const providerServices = services.filter(s => s.providerId === user?.id);
+  const providerRentals = rentals.filter(r => r.id.startsWith('rnt')); // Assuming basic filter for now
+
   const completedJobs = providerBookings.filter(b => b.status === "Completed").length;
   const pendingJobs = providerBookings.filter(b => b.status === "Pending").length;
 
@@ -33,152 +36,145 @@ export function EmployeeHomeContent() {
     router.push("/provider/add-service");
   };
 
+  const handleAddRental = () => {
+    toast.success("Rental listing feature coming soon!");
+  };
+
   const handleStatusUpdate = (jobId: string) => {
     toast.success(`Opening details for job ${jobId}`);
   };
 
   return (
-    <div className="flex flex-col gap-5 px-4 py-4 pb-8">
-      {/* Welcome */}
-      <div className="rounded-2xl bg-primary p-5 shadow-lg relative overflow-hidden">
-        <div className="relative z-10">
-          <p className="text-sm text-primary-foreground/70">Welcome back,</p>
-          <h2 className="text-xl font-bold text-primary-foreground">{user?.name}</h2>
-          <p className="mt-1 text-xs text-primary-foreground/60">Provider ID: {user?.employeeId}</p>
+    <div className="flex flex-col gap-6 px-4 py-5 pb-12 animate-fade-in">
+      {/* Employee Professional Header */}
+      <div className="relative overflow-hidden rounded-[2.5rem] bg-accent p-6 text-accent-foreground shadow-2xl shadow-accent/20">
+        <div className="relative z-10 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-md border border-white/20">
+              <User size={28} className="text-accent-foreground" />
+            </div>
+            <div>
+              <p className="text-[10px] font-black text-accent-foreground/60 uppercase tracking-widest">Job Partner</p>
+              <h2 className="text-xl font-black tracking-tight">{user?.name}</h2>
+              <p className="text-[10px] font-bold text-accent-foreground/40 mt-0.5 tracking-tighter">ID: {user?.employeeId}</p>
+            </div>
+          </div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent-foreground/10">
+            <Bell size={20} className="text-accent-foreground" />
+          </div>
         </div>
-        <div className="absolute -right-4 -bottom-4 opacity-10">
-          <User size={120} />
-        </div>
+
+        {/* Background Decorative Elements */}
+        <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
       </div>
 
-      {/* Quick Actions */}
-      <div className="flex gap-3">
+      {/* Action Hub */}
+      <div className="flex gap-3 animate-slide-up" style={{ animationDelay: '100ms' }}>
         <Button
           onClick={handleAddService}
-          className="flex-1 rounded-2xl h-14 bg-accent hover:bg-accent/90 text-accent-foreground font-bold shadow-sm"
+          className="flex-1 h-14 rounded-2xl bg-white border border-slate-100 text-slate-900 font-black text-[10px] uppercase tracking-widest shadow-sm hover:shadow-md transition-all active:scale-95"
         >
-          <Plus className="mr-2 h-5 w-5" /> Add Service
+          <Plus className="mr-2 h-4 w-4 text-accent" /> New Service
+        </Button>
+        <Button
+          onClick={handleAddRental}
+          className="flex-1 h-14 rounded-2xl bg-white border border-slate-100 text-slate-900 font-black text-[10px] uppercase tracking-widest shadow-sm hover:shadow-md transition-all active:scale-95"
+        >
+          <Package className="mr-2 h-4 w-4 text-emerald-500" /> List Rental
         </Button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-2xl bg-card p-4 shadow-sm border border-border">
-          <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-accent/10">
-              <ClipboardList size={18} className="text-accent" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">My Services</p>
-              <p className="text-lg font-bold text-foreground">{providerServices.length}</p>
-            </div>
+      {/* Business Metrics */}
+      <div className="grid grid-cols-2 gap-4 animate-slide-up" style={{ animationDelay: '200ms' }}>
+        <div className="bg-slate-50 p-5 rounded-[2rem] border border-slate-100 flex flex-col gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white shadow-sm border border-slate-100/50">
+            <CheckCircle2 size={18} className="text-emerald-500" />
+          </div>
+          <div>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Completed Jobs</p>
+            <p className="text-2xl font-black text-slate-900">{completedJobs}</p>
           </div>
         </div>
-        <div className="rounded-2xl bg-card p-4 shadow-sm border border-border">
-          <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#f0fff4]">
-              <CheckCircle2 size={18} className="text-[#38a169]" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Completed</p>
-              <p className="text-lg font-bold text-foreground">{completedJobs}</p>
-            </div>
+
+        <div className="bg-slate-50 p-5 rounded-[2rem] border border-slate-100 flex flex-col gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white shadow-sm border border-slate-100/50">
+            <Package size={18} className="text-blue-500" />
           </div>
-        </div>
-        <div className="rounded-2xl bg-card p-4 shadow-sm border border-border">
-          <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#fefcbf]">
-              <Star size={18} className="text-[#d69e2e]" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Rating</p>
-              <p className="text-lg font-bold text-foreground">5.0</p>
-            </div>
-          </div>
-        </div>
-        <div className="rounded-2xl bg-card p-4 shadow-sm border border-border">
-          <div className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#ebf4ff]">
-              <TrendingUp size={18} className="text-[#3182ce]" />
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Active</p>
-              <p className="text-lg font-bold text-foreground">{pendingJobs}</p>
-            </div>
+          <div>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Active Assets</p>
+            <p className="text-2xl font-black text-slate-900">{providerRentals.length}</p>
           </div>
         </div>
       </div>
 
-      {/* Upcoming Jobs */}
-      <div>
-        <div className="flex items-center justify-between pb-3">
-          <h3 className="text-base font-bold text-foreground">{"Manage Bookings"}</h3>
-          <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Calendar size={14} />
-            <span>Today</span>
+      {/* Job Management */}
+      <div className="flex flex-col gap-4 animate-fade-in" style={{ animationDelay: '400ms' }}>
+        <div className="flex items-center justify-between px-1">
+          <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">Active Engagements</h3>
+          <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-50 border border-slate-100 rounded-full">
+            <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Status: Online</span>
           </div>
         </div>
+
         <div className="flex flex-col gap-3">
           {providerBookings.length > 0 ? (
-            providerBookings.map((job) => (
+            providerBookings.map((job, idx) => (
               <div
                 key={job.id}
                 onClick={() => handleStatusUpdate(job.id)}
-                className="rounded-2xl border border-border bg-card p-4 shadow-sm cursor-pointer active:scale-95 transition-transform"
+                className="group relative overflow-hidden rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm hover:shadow-md transition-all active:scale-95 animate-slide-up"
+                style={{ animationDelay: `${idx * 100 + 500}ms` }}
               >
-                <div className="flex items-start justify-between">
-                  <div>
+                <div className="relative z-10 flex flex-col gap-4">
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-mono text-muted-foreground">{job.id}</span>
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${job.status === "Completed"
-                        ? "bg-green-100 text-green-700"
-                        : job.status === "Accepted"
-                          ? "bg-blue-100 text-blue-700"
-                          : "bg-yellow-100 text-yellow-700"
-                        }`}>
-                        {job.status}
-                      </span>
+                      <div className="h-8 w-8 rounded-xl bg-slate-50 flex items-center justify-center">
+                        <User size={14} className="text-slate-400" />
+                      </div>
+                      <p className="text-sm font-black text-slate-900 leading-none">{job.customerName}</p>
                     </div>
-                    <p className="mt-1 font-semibold text-foreground">{job.customerName}</p>
-                    <p className="text-sm text-muted-foreground">{job.serviceTitle}</p>
+                    <span className={`rounded-xl px-2.5 py-1 text-[9px] font-black uppercase tracking-widest shadow-sm ${job.status === "Completed" ? "bg-emerald-50 text-emerald-600" :
+                        job.status === "Accepted" ? "bg-blue-50 text-blue-600" :
+                          "bg-amber-50 text-amber-600"
+                      }`}>
+                      {job.status}
+                    </span>
                   </div>
-                  <div className="text-right">
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Clock size={12} />
-                      {job.time}
+
+                  <div className="flex flex-col gap-1 px-1">
+                    <p className="text-xs font-bold text-slate-600 leading-tight">{job.serviceTitle}</p>
+                    <div className="flex items-center gap-3 mt-1">
+                      <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400">
+                        <Clock size={12} /> {job.time}
+                      </div>
+                      <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400">
+                        <Calendar size={12} /> {job.date}
+                      </div>
                     </div>
-                    <p className="mt-1 text-sm font-bold text-primary">₹{job.amount}</p>
                   </div>
-                </div>
-                <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
-                  <Calendar size={12} />
-                  {job.date}
+
+                  <div className="flex items-center justify-between pt-3 border-t border-slate-50 mt-1">
+                    <div className="flex items-center gap-1 text-[10px] font-black text-primary">
+                      <MapPin size={12} /> Track Location
+                    </div>
+                    <p className="text-sm font-black text-slate-900">₹{job.amount}</p>
+                  </div>
                 </div>
               </div>
             ))
           ) : (
-            <div className="flex flex-col items-center justify-center py-10 rounded-2xl border border-dashed border-border bg-secondary/20">
-              <ClipboardList size={40} className="text-muted-foreground/30" />
-              <p className="mt-2 text-sm text-muted-foreground font-medium">No bookings yet</p>
-              <p className="text-xs text-muted-foreground/60 text-center px-4 mt-1">
-                Your assigned bookings will appear here.
-              </p>
+            <div className="flex items-center justify-center rounded-[2.5rem] border-2 border-dashed border-slate-100 bg-slate-50/50 p-12">
+              <div className="flex flex-col items-center gap-4 text-center">
+                <div className="h-16 w-16 bg-white rounded-3xl shadow-sm flex items-center justify-center opacity-40">
+                  <ClipboardList size={32} className="text-slate-400" />
+                </div>
+                <div>
+                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Station Empty</p>
+                  <p className="text-[10px] text-slate-300 font-bold mt-1">No incoming bookings at the moment</p>
+                </div>
+              </div>
             </div>
-          )}
-        </div>
-      </div>
-
-      {/* Notifications */}
-      <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
-        <div className="flex items-center gap-2 pb-3">
-          <Bell size={16} className="text-accent" />
-          <h3 className="text-sm font-bold text-foreground">Updates</h3>
-        </div>
-        <div className="flex flex-col gap-2">
-          {providerBookings.length > 0 ? (
-            <p className="text-xs text-muted-foreground">You have {pendingJobs} pending booking requests.</p>
-          ) : (
-            <p className="text-xs text-muted-foreground">Welcome to ServiceHub! Complete your profile to get more jobs.</p>
           )}
         </div>
       </div>

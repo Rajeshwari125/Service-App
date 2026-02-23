@@ -10,172 +10,162 @@ import {
     MapPin,
     MoreVertical,
     CheckCircle2,
-    AlertCircle
+    AlertCircle,
+    ShoppingBag,
+    Briefcase
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useData } from "@/lib/data-context";
 
 export default function OrdersPage() {
     const { user } = useAuth();
-    const { bookings, services, products } = useData();
-    const [activeTab, setActiveTab] = useState<"services" | "products">("services");
+    const { bookings, services } = useData();
+    const [activeTab, setActiveTab] = useState<"services" | "rentals">("services");
 
     // Filter bookings for the logged-in customer
     const userBookings = bookings.filter(b => b.customerId === user?.id);
     const serviceBookings = userBookings.filter(b => b.type === "service");
-    // Product bookings are still mock-supported or handled via DataContext if they exist
-    const productBookings = userBookings.filter(b => b.type === "product");
+    const rentalBookings = userBookings.filter(b => b.type === "rental");
 
-    const orders = activeTab === "services" ? serviceBookings : productBookings;
+    const orders = activeTab === "services" ? serviceBookings : rentalBookings;
 
-    // Determine status color
-    const getStatusColor = (status: string) => {
+    const getStatusStyles = (status: string) => {
         switch (status.toLowerCase()) {
             case "completed":
             case "delivered":
             case "accepted":
-                return "bg-green-100 text-green-700";
+                return "bg-emerald-50 text-emerald-600 border-emerald-100 shadow-emerald-100/50";
             case "pending":
             case "on the way":
-                return "bg-yellow-100 text-yellow-700";
+                return "bg-amber-50 text-amber-600 border-amber-100 shadow-amber-100/50";
             case "cancelled":
             case "rejected":
-                return "bg-red-100 text-red-700";
+                return "bg-rose-50 text-rose-600 border-rose-100 shadow-rose-100/50";
             default:
-                return "bg-gray-100 text-gray-700";
+                return "bg-slate-50 text-slate-600 border-slate-100 shadow-slate-100/50";
         }
-    };
-
-    // Helper to get image for service/product
-    const getImage = (order: any) => {
-        if (order.type === "service") {
-            const svc = services.find(s => s.id === order.serviceId);
-            return svc?.image || "https://images.unsplash.com/photo-1542909168-82c3e7fdca5c?q=80&w=100&h=100&auto=format&fit=crop";
-        }
-        return "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?q=80&w=100&h=100&auto=format&fit=crop";
     };
 
     return (
-        <div className="flex min-h-screen flex-col bg-background pb-20">
-            {/* Header */}
-            <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                <div className="flex items-center gap-3 border-b border-border px-4 py-3">
-                    <Link
-                        href="/"
-                        className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary text-foreground transition-colors hover:bg-secondary/80"
-                    >
-                        <ArrowLeft size={20} />
-                    </Link>
-                    <div className="flex-1">
-                        <h1 className="text-lg font-bold text-foreground">My Orders</h1>
-                        <p className="text-xs text-muted-foreground">Track your bookings & orders</p>
+        <div className="flex h-full flex-col bg-slate-50/50 animate-fade-in overflow-hidden">
+            {/* Premium Header */}
+            <div className="bg-white px-6 pt-10 pb-6 border-b border-slate-100 shadow-sm relative z-10">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <Link
+                            href="/"
+                            className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-lg active:scale-90 transition-all"
+                        >
+                            <ArrowLeft size={20} />
+                        </Link>
+                        <div>
+                            <h1 className="text-xl font-black text-slate-900 tracking-tight">Active Bookings</h1>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tracking Live Status</p>
+                        </div>
+                    </div>
+                    <div className="h-12 w-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary">
+                        <Briefcase size={22} />
                     </div>
                 </div>
 
-                {/* Tabs */}
-                <div className="grid grid-cols-2 p-4 pb-0">
+                {/* Tab Navigator */}
+                <div className="flex mt-8 p-1 bg-slate-100/80 rounded-2xl border border-slate-100">
                     <button
                         onClick={() => setActiveTab("services")}
-                        className={`flex items-center justify-center gap-2 border-b-2 pb-3 text-sm font-semibold transition-colors ${activeTab === "services"
-                            ? "border-primary text-primary"
-                            : "border-transparent text-muted-foreground hover:text-foreground"
+                        className={`flex-1 py-3 text-xs font-black rounded-xl transition-all duration-300 uppercase tracking-widest ${activeTab === "services"
+                            ? "bg-white text-slate-900 shadow-md scale-[1.02]"
+                            : "text-slate-400 hover:text-slate-600"
                             }`}
                     >
-                        <Calendar size={16} />
                         Services
                     </button>
                     <button
-                        onClick={() => setActiveTab("products")}
-                        className={`flex items-center justify-center gap-2 border-b-2 pb-3 text-sm font-semibold transition-colors ${activeTab === "products"
-                            ? "border-primary text-primary"
-                            : "border-transparent text-muted-foreground hover:text-foreground"
+                        onClick={() => setActiveTab("rentals")}
+                        className={`flex-1 py-3 text-xs font-black rounded-xl transition-all duration-300 uppercase tracking-widest ${activeTab === "rentals"
+                            ? "bg-white text-slate-900 shadow-md scale-[1.02]"
+                            : "text-slate-400 hover:text-slate-600"
                             }`}
                     >
-                        <Package size={16} />
-                        Products
+                        Rentals
                     </button>
                 </div>
             </div>
 
-            {/* Orders List */}
-            <div className="flex flex-col gap-4 p-4">
-                {orders.map((order) => (
-                    <div key={order.id} className="group relative overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all hover:shadow-md">
-                        <div className="flex p-4 gap-4">
-                            {/* Image */}
-                            <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-xl bg-secondary">
-                                <img
-                                    src={getImage(order)}
-                                    alt="Order item"
-                                    className="h-full w-full object-cover"
-                                />
-                            </div>
-
-                            {/* Details */}
-                            <div className="flex flex-1 flex-col justify-between">
-                                <div>
-                                    <div className="flex justify-between items-start">
-                                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${getStatusColor(order.status)}`}>
-                                            {order.status}
-                                        </span>
-                                        <span className="text-xs font-mono text-muted-foreground">{order.id}</span>
-                                    </div>
-
-                                    <h3 className="mt-1 font-bold text-foreground">
-                                        {activeTab === "services" ? order.providerName : (order as any).items?.[0] || "General Product"}
-                                    </h3>
-                                    {activeTab === "products" && (order as any).items && (order as any).items.length > 1 && (
-                                        <p className="text-xs text-muted-foreground">+ {(order as any).items.length - 1} more items</p>
-                                    )}
-                                    {activeTab === "services" && (
-                                        <p className="text-xs text-muted-foreground">{order.serviceTitle}</p>
-                                    )}
-                                </div>
-
-                                <div className="mt-2 flex items-center justify-between">
-                                    <div className="flex flex-col text-xs text-muted-foreground">
-                                        <span className="flex items-center gap-1">
-                                            <Calendar size={10} /> {order.date}
-                                        </span>
-                                    </div>
-                                    <span className="font-bold text-foreground">₹{order.amount}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Footer */}
-                        <div className="flex items-center justify-between border-t border-border bg-secondary/30 px-4 py-3">
-                            <button className="text-xs font-semibold text-primary hover:underline">
-                                View Details
-                            </button>
-                            {order.status === "Completed" || order.status === "Delivered" ? (
-                                <button className="flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-foreground">
-                                    <CheckCircle2 size={14} /> Rate
-                                </button>
-                            ) : (
-                                <button className="flex items-center gap-1 text-xs font-semibold text-red-500 hover:text-red-700">
-                                    <AlertCircle size={14} /> Help
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                ))}
-
-                {orders.length === 0 && (
-                    <div className="flex flex-col items-center justify-center pt-20 text-center">
-                        <div className="flex h-20 w-20 items-center justify-center rounded-full bg-secondary">
-                            <Package size={40} className="text-muted-foreground/50" />
-                        </div>
-                        <h3 className="mt-4 text-lg font-bold text-foreground">No orders yet</h3>
-                        <p className="text-sm text-muted-foreground">Start booking services or shopping for products!</p>
-                        <Link
-                            href="/"
-                            className="mt-6 rounded-xl bg-primary px-6 py-2.5 text-sm font-bold text-primary-foreground shadow-sm hover:opacity-90"
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto px-4 py-8 scrollbar-hide pb-32">
+                <div className="flex flex-col gap-5">
+                    {orders.map((order, idx) => (
+                        <div
+                            key={order.id}
+                            className="group relative overflow-hidden rounded-[2rem] border border-white bg-white p-5 shadow-xl shadow-slate-200/50 animate-slide-up"
+                            style={{ animationDelay: `${idx * 100}ms` }}
                         >
-                            Browse Categories
-                        </Link>
-                    </div>
-                )}
+                            <div className="flex flex-col gap-4">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <div className="h-10 w-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-400">
+                                            {activeTab === "services" ? <Briefcase size={20} /> : <Package size={20} />}
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Order ID: {order.id.slice(-6)}</p>
+                                            <p className="text-sm font-black text-slate-900">{order.serviceTitle}</p>
+                                        </div>
+                                    </div>
+                                    <div className={`rounded-xl px-3 py-1.5 text-[9px] font-black uppercase tracking-widest border shadow-sm ${getStatusStyles(order.status)}`}>
+                                        {order.status}
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center justify-between py-1 px-1">
+                                    <div className="flex flex-col gap-1.5">
+                                        <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400">
+                                            <Calendar size={12} className="text-slate-300" /> {order.date}
+                                        </div>
+                                        <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400">
+                                            <Clock size={12} className="text-slate-300" /> {order.time}
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Total Paid</p>
+                                        <p className="text-lg font-black text-slate-900">₹{order.amount}</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-3 pt-4 border-t border-slate-50">
+                                    <button className="flex-1 py-3.5 rounded-[1.2rem] bg-slate-900 text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-lg active:scale-95 transition-all">
+                                        Track Progress
+                                    </button>
+                                    <button className="h-12 w-12 flex items-center justify-center rounded-[1.2rem] border border-slate-100 text-slate-400 hover:bg-slate-50 active:scale-90 transition-all">
+                                        <AlertCircle size={20} />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+
+                    {orders.length === 0 && (
+                        <div className="flex flex-col items-center justify-center py-20 px-10 text-center animate-fade-in">
+                            <div className="relative mb-6">
+                                <div className="h-24 w-24 rounded-[2.5rem] bg-white shadow-xl shadow-slate-200/50 flex items-center justify-center border border-slate-50">
+                                    <ShoppingBag size={40} className="text-slate-200" />
+                                </div>
+                                <div className="absolute -bottom-2 -right-2 h-10 w-10 rounded-2xl bg-slate-100 flex items-center justify-center border-4 border-white">
+                                    <Clock size={16} className="text-slate-400" />
+                                </div>
+                            </div>
+                            <h3 className="text-lg font-black text-slate-900 tracking-tight">Empty Station</h3>
+                            <p className="mt-2 text-xs font-bold text-slate-400 leading-relaxed max-w-[200px]">
+                                You haven't placed any {activeTab} bookings yet.
+                            </p>
+                            <Link
+                                href="/"
+                                className="mt-8 rounded-2xl bg-white border border-slate-900 px-8 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-900 shadow-sm active:scale-95 transition-all"
+                            >
+                                Start Browsing
+                            </Link>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

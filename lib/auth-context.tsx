@@ -5,6 +5,7 @@ import {
   useContext,
   useState,
   useCallback,
+  useEffect,
   type ReactNode,
 } from "react";
 
@@ -64,6 +65,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     defaultAdmin,
   ]);
   const [pendingOtp, setPendingOtp] = useState<string | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // Load users and session from LocalStorage
+  useEffect(() => {
+    const storedUsers = localStorage.getItem("servicehub_users");
+    if (storedUsers) {
+      setUsers(JSON.parse(storedUsers));
+    }
+
+    const savedSession = localStorage.getItem("servicehub_session");
+    if (savedSession) {
+      setUser(JSON.parse(savedSession));
+    }
+
+    setIsLoaded(true);
+  }, []);
+
+  // Save users and session to LocalStorage (ONLY after initial load)
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem("servicehub_users", JSON.stringify(users));
+    }
+  }, [users, isLoaded]);
+
+  useEffect(() => {
+    if (isLoaded) {
+      if (user) {
+        localStorage.setItem("servicehub_session", JSON.stringify(user));
+      } else {
+        localStorage.removeItem("servicehub_session");
+      }
+    }
+  }, [user, isLoaded]);
 
   const generateOtp = useCallback(() => {
     const otp = Math.floor(1000 + Math.random() * 9000).toString();
