@@ -102,7 +102,7 @@ export default function Page() {
             <SearchBar />
             <AdminHomeContent />
           </div>
-        ) : user.role === "employee" ? (
+        ) : (user.role === "employee" || user.role === "provider") ? (
           <div className="pb-20">
             <SearchBar />
             <EmployeeHomeContent />
@@ -119,7 +119,7 @@ export default function Page() {
         )}
       </main>
 
-      {user.role === "customer" && <BottomNav />}
+      {user.role !== "admin" && (user.role === "employee" || user.role === "provider") === false && <BottomNav />}
     </div>
   );
 }

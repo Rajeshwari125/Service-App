@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useRouter } from "next/navigation";
 import { useData } from "@/lib/data-context";
@@ -15,33 +16,32 @@ import {
   Plus,
   User,
   Package,
+  Briefcase,
+  Tag,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 export function EmployeeHomeContent() {
   const router = useRouter();
+  const [listingTab, setListingTab] = useState<"services" | "rentals">("services");
   const { user } = useAuth();
   const { bookings, services, rentals } = useData();
 
   // Stats
   const providerBookings = bookings.filter(b => b.providerId === user?.id);
   const providerServices = services.filter(s => s.providerId === user?.id);
-  const providerRentals = rentals.filter(r => r.id.startsWith('rnt')); // Assuming basic filter for now
+  const providerRentals = rentals.filter(r => r.providerId === user?.id);
 
-  const completedJobs = providerBookings.filter(b => b.status === "Completed").length;
-  const pendingJobs = providerBookings.filter(b => b.status === "Pending").length;
+  const completedBookings = providerBookings.filter(b => b.status === "Completed").length;
+  const pendingBookings = providerBookings.filter(b => b.status === "Pending").length;
 
   const handleAddService = () => {
-    router.push("/provider/add-service");
+    router.push("/provider/add-listing");
   };
 
   const handleAddRental = () => {
-    toast.success("Rental listing feature coming soon!");
-  };
-
-  const handleStatusUpdate = (jobId: string) => {
-    toast.success(`Opening details for job ${jobId}`);
+    router.push("/provider/add-listing");
   };
 
   return (
@@ -54,7 +54,7 @@ export function EmployeeHomeContent() {
               <User size={28} className="text-accent-foreground" />
             </div>
             <div>
-              <p className="text-[10px] font-black text-accent-foreground/60 uppercase tracking-widest">Job Partner</p>
+              <p className="text-[10px] font-black text-accent-foreground/60 uppercase tracking-widest">Service Partner</p>
               <h2 className="text-xl font-black tracking-tight">{user?.name}</h2>
               <p className="text-[10px] font-bold text-accent-foreground/40 mt-0.5 tracking-tighter">ID: {user?.employeeId}</p>
             </div>
@@ -68,49 +68,206 @@ export function EmployeeHomeContent() {
         <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/10 blur-3xl" />
       </div>
 
-      {/* Action Hub */}
-      <div className="flex gap-3 animate-slide-up" style={{ animationDelay: '100ms' }}>
-        <Button
-          onClick={handleAddService}
-          className="flex-1 h-14 rounded-2xl bg-white border border-slate-100 text-slate-900 font-black text-[10px] uppercase tracking-widest shadow-sm hover:shadow-md transition-all active:scale-95"
-        >
-          <Plus className="mr-2 h-4 w-4 text-accent" /> New Service
-        </Button>
-        <Button
-          onClick={handleAddRental}
-          className="flex-1 h-14 rounded-2xl bg-white border border-slate-100 text-slate-900 font-black text-[10px] uppercase tracking-widest shadow-sm hover:shadow-md transition-all active:scale-95"
-        >
-          <Package className="mr-2 h-4 w-4 text-emerald-500" /> List Rental
-        </Button>
-      </div>
-
       {/* Business Metrics */}
-      <div className="grid grid-cols-2 gap-4 animate-slide-up" style={{ animationDelay: '200ms' }}>
-        <div className="bg-slate-50 p-5 rounded-[2rem] border border-slate-100 flex flex-col gap-3">
+      <div className="grid grid-cols-3 gap-3 animate-slide-up" style={{ animationDelay: '200ms' }}>
+        <div className="bg-slate-50 p-4 rounded-[2rem] border border-slate-100 flex flex-col items-center gap-2">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white shadow-sm border border-slate-100/50">
+            <Briefcase size={18} className="text-blue-500" />
+          </div>
+          <div className="text-center">
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Services</p>
+            <p className="text-2xl font-black text-slate-900">{providerServices.length}</p>
+          </div>
+        </div>
+
+        <div className="bg-slate-50 p-4 rounded-[2rem] border border-slate-100 flex flex-col items-center gap-2">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white shadow-sm border border-slate-100/50">
+            <Clock size={18} className="text-amber-500" />
+          </div>
+          <div className="text-center">
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Pending</p>
+            <p className="text-2xl font-black text-slate-900">{pendingBookings}</p>
+          </div>
+        </div>
+
+        <div className="bg-slate-50 p-4 rounded-[2rem] border border-slate-100 flex flex-col items-center gap-2">
           <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white shadow-sm border border-slate-100/50">
             <CheckCircle2 size={18} className="text-emerald-500" />
           </div>
-          <div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Completed Jobs</p>
-            <p className="text-2xl font-black text-slate-900">{completedJobs}</p>
-          </div>
-        </div>
-
-        <div className="bg-slate-50 p-5 rounded-[2rem] border border-slate-100 flex flex-col gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white shadow-sm border border-slate-100/50">
-            <Package size={18} className="text-blue-500" />
-          </div>
-          <div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Active Assets</p>
-            <p className="text-2xl font-black text-slate-900">{providerRentals.length}</p>
+          <div className="text-center">
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Done</p>
+            <p className="text-2xl font-black text-slate-900">{completedBookings}</p>
           </div>
         </div>
       </div>
 
-      {/* Job Management */}
-      <div className="flex flex-col gap-4 animate-fade-in" style={{ animationDelay: '400ms' }}>
+      {/* My Listings - Services & Rentals */}
+      <div className="flex flex-col gap-4 animate-fade-in" style={{ animationDelay: '300ms' }}>
         <div className="flex items-center justify-between px-1">
-          <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">Active Engagements</h3>
+          <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">My Listings</h3>
+          <span className="text-[10px] font-bold text-muted-foreground bg-slate-50 px-3 py-1 rounded-full border border-slate-100">
+            {providerServices.length + providerRentals.length} Total
+          </span>
+        </div>
+
+        {/* Tab Switcher */}
+        <div className="flex gap-2 bg-slate-100 p-1 rounded-2xl">
+          <button
+            type="button"
+            onClick={() => setListingTab("services")}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${listingTab === "services"
+              ? "bg-white text-slate-900 shadow-sm"
+              : "text-slate-400 hover:text-slate-600"
+              }`}
+          >
+            <Briefcase size={14} />
+            Services ({providerServices.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setListingTab("rentals")}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${listingTab === "rentals"
+              ? "bg-white text-slate-900 shadow-sm"
+              : "text-slate-400 hover:text-slate-600"
+              }`}
+          >
+            <Package size={14} />
+            Rentals ({providerRentals.length})
+          </button>
+        </div>
+
+        {/* Services List */}
+        {listingTab === "services" && (
+          <div className="flex flex-col gap-3">
+            {providerServices.length > 0 ? (
+              providerServices.map((service, idx) => (
+                <div
+                  key={service.id}
+                  className="group relative flex overflow-hidden rounded-[2rem] border border-slate-100 bg-white shadow-sm hover:shadow-md transition-all animate-slide-up"
+                  style={{ animationDelay: `${idx * 100}ms` }}
+                >
+                  <div className="relative h-auto w-28 flex-shrink-0 overflow-hidden">
+                    <img
+                      src={service.image}
+                      alt={service.title}
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                    <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-blue-500/80 text-white text-[8px] font-black uppercase tracking-wider backdrop-blur-md border border-blue-400/30">
+                      {service.category}
+                    </div>
+                  </div>
+                  <div className="flex flex-1 flex-col justify-between p-4">
+                    <div>
+                      <h4 className="text-sm font-black text-slate-900 leading-tight">{service.title}</h4>
+                      <p className="text-[11px] text-muted-foreground mt-1 line-clamp-2">{service.description}</p>
+                    </div>
+                    <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-50">
+                      <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                        <MapPin size={11} />
+                        {service.location}
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-black text-primary">₹{service.price}</p>
+                        <p className="text-[9px] text-muted-foreground uppercase font-bold">/{service.priceUnit}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="flex items-center justify-center rounded-[2.5rem] border-2 border-dashed border-slate-100 bg-slate-50/50 p-10">
+                <div className="flex flex-col items-center gap-4 text-center">
+                  <div className="h-16 w-16 bg-white rounded-3xl shadow-sm flex items-center justify-center opacity-40">
+                    <Briefcase size={32} className="text-slate-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest">No Services Yet</p>
+                    <p className="text-[10px] text-slate-300 font-bold mt-1">Add your first service to get started</p>
+                  </div>
+                  <Button
+                    onClick={handleAddService}
+                    size="sm"
+                    className="rounded-xl text-[10px] font-black uppercase tracking-widest mt-1"
+                  >
+                    <Plus className="mr-1 h-3 w-3" /> Add Service
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Rentals List */}
+        {listingTab === "rentals" && (
+          <div className="flex flex-col gap-3">
+            {providerRentals.length > 0 ? (
+              providerRentals.map((rental, idx) => (
+                <div
+                  key={rental.id}
+                  className="group relative flex overflow-hidden rounded-[2rem] border border-slate-100 bg-white shadow-sm hover:shadow-md transition-all animate-slide-up"
+                  style={{ animationDelay: `${idx * 100}ms` }}
+                >
+                  <div className="relative h-auto w-28 flex-shrink-0 overflow-hidden">
+                    <img
+                      src={rental.image}
+                      alt={rental.name}
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                    <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-emerald-500/80 text-white text-[8px] font-black uppercase tracking-wider backdrop-blur-md border border-emerald-400/30">
+                      {rental.category}
+                    </div>
+                  </div>
+                  <div className="flex flex-1 flex-col justify-between p-4">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-sm font-black text-slate-900 leading-tight">{rental.name}</h4>
+                        <span className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase ${rental.isAvailable ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"}`}>
+                          {rental.isAvailable ? "Available" : "Rented"}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground mt-1 line-clamp-2">{rental.description}</p>
+                    </div>
+                    <div className="flex items-center justify-between mt-3 pt-2 border-t border-slate-50">
+                      <div className="flex items-center gap-1 text-[10px] text-emerald-600 font-bold">
+                        <Package size={11} />
+                        Rental
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-black text-emerald-600">₹{rental.price}</p>
+                        <p className="text-[9px] text-muted-foreground uppercase font-bold">/{rental.durationUnit}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="flex items-center justify-center rounded-[2.5rem] border-2 border-dashed border-emerald-100 bg-emerald-50/30 p-10">
+                <div className="flex flex-col items-center gap-4 text-center">
+                  <div className="h-16 w-16 bg-white rounded-3xl shadow-sm flex items-center justify-center opacity-40">
+                    <Package size={32} className="text-emerald-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest">No Rentals Yet</p>
+                    <p className="text-[10px] text-slate-300 font-bold mt-1">Add your first rental to get started</p>
+                  </div>
+                  <Button
+                    onClick={handleAddRental}
+                    size="sm"
+                    className="rounded-xl text-[10px] font-black uppercase tracking-widest mt-1 bg-emerald-600 hover:bg-emerald-700"
+                  >
+                    <Plus className="mr-1 h-3 w-3" /> Add Rental
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Active Bookings */}
+      <div className="flex flex-col gap-4 animate-fade-in" style={{ animationDelay: '500ms' }}>
+        <div className="flex items-center justify-between px-1">
+          <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">Active Bookings</h3>
           <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-50 border border-slate-100 rounded-full">
             <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Status: Online</span>
@@ -119,12 +276,11 @@ export function EmployeeHomeContent() {
 
         <div className="flex flex-col gap-3">
           {providerBookings.length > 0 ? (
-            providerBookings.map((job, idx) => (
+            providerBookings.map((booking, idx) => (
               <div
-                key={job.id}
-                onClick={() => handleStatusUpdate(job.id)}
+                key={booking.id}
                 className="group relative overflow-hidden rounded-[2rem] border border-slate-100 bg-white p-5 shadow-sm hover:shadow-md transition-all active:scale-95 animate-slide-up"
-                style={{ animationDelay: `${idx * 100 + 500}ms` }}
+                style={{ animationDelay: `${idx * 100 + 600}ms` }}
               >
                 <div className="relative z-10 flex flex-col gap-4">
                   <div className="flex items-center justify-between">
@@ -132,24 +288,24 @@ export function EmployeeHomeContent() {
                       <div className="h-8 w-8 rounded-xl bg-slate-50 flex items-center justify-center">
                         <User size={14} className="text-slate-400" />
                       </div>
-                      <p className="text-sm font-black text-slate-900 leading-none">{job.customerName}</p>
+                      <p className="text-sm font-black text-slate-900 leading-none">{booking.customerName}</p>
                     </div>
-                    <span className={`rounded-xl px-2.5 py-1 text-[9px] font-black uppercase tracking-widest shadow-sm ${job.status === "Completed" ? "bg-emerald-50 text-emerald-600" :
-                        job.status === "Accepted" ? "bg-blue-50 text-blue-600" :
-                          "bg-amber-50 text-amber-600"
+                    <span className={`rounded-xl px-2.5 py-1 text-[9px] font-black uppercase tracking-widest shadow-sm ${booking.status === "Completed" ? "bg-emerald-50 text-emerald-600" :
+                      booking.status === "Accepted" ? "bg-blue-50 text-blue-600" :
+                        "bg-amber-50 text-amber-600"
                       }`}>
-                      {job.status}
+                      {booking.status}
                     </span>
                   </div>
 
                   <div className="flex flex-col gap-1 px-1">
-                    <p className="text-xs font-bold text-slate-600 leading-tight">{job.serviceTitle}</p>
+                    <p className="text-xs font-bold text-slate-600 leading-tight">{booking.serviceTitle}</p>
                     <div className="flex items-center gap-3 mt-1">
                       <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400">
-                        <Clock size={12} /> {job.time}
+                        <Clock size={12} /> {booking.time}
                       </div>
                       <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400">
-                        <Calendar size={12} /> {job.date}
+                        <Calendar size={12} /> {booking.date}
                       </div>
                     </div>
                   </div>
@@ -158,7 +314,7 @@ export function EmployeeHomeContent() {
                     <div className="flex items-center gap-1 text-[10px] font-black text-primary">
                       <MapPin size={12} /> Track Location
                     </div>
-                    <p className="text-sm font-black text-slate-900">₹{job.amount}</p>
+                    <p className="text-sm font-black text-slate-900">₹{booking.amount}</p>
                   </div>
                 </div>
               </div>
@@ -170,7 +326,7 @@ export function EmployeeHomeContent() {
                   <ClipboardList size={32} className="text-slate-400" />
                 </div>
                 <div>
-                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Station Empty</p>
+                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest">No Bookings Yet</p>
                   <p className="text-[10px] text-slate-300 font-bold mt-1">No incoming bookings at the moment</p>
                 </div>
               </div>
@@ -181,3 +337,4 @@ export function EmployeeHomeContent() {
     </div>
   );
 }
+

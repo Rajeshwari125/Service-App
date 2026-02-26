@@ -9,6 +9,7 @@ import {
     type ReactNode,
 } from "react";
 import { useAuth } from "./auth-context";
+import { apiClient } from "./api-client";
 
 export interface Service {
     id: string;
@@ -28,6 +29,8 @@ export interface Service {
 
 export interface Rental {
     id: string;
+    providerId: string;
+    providerName: string;
     name: string;
     description: string;
     price: number;
@@ -36,7 +39,7 @@ export interface Rental {
     rating: number;
     reviews: number;
     image: string;
-    durationUnit: string; // e.g., "hour", "day", "week"
+    durationUnit: string;
     isAvailable: boolean;
 }
 
@@ -60,93 +63,121 @@ interface DataContextType {
     services: Service[];
     rentals: Rental[];
     bookings: Booking[];
-    addService: (service: Omit<Service, "id" | "rating" | "reviews">) => void;
-    addRental: (rental: Omit<Rental, "id" | "rating" | "reviews">) => void;
-    addBooking: (booking: Omit<Booking, "id" | "status">) => void;
-    updateBookingStatus: (id: string, status: Booking["status"]) => void;
+    addService: (service: Omit<Service, "id" | "rating" | "reviews">) => Promise<void>;
+    addRental: (rental: Omit<Rental, "id" | "rating" | "reviews">) => Promise<void>;
+    addBooking: (booking: Omit<Booking, "id" | "status">) => Promise<void>;
+    updateBookingStatus: (id: string, status: Booking["status"]) => Promise<void>;
     getProviderBookings: (providerId: string) => Booking[];
     getCustomerBookings: (customerId: string) => Booking[];
+    refreshData: () => Promise<void>;
 }
 
 const DataContext = createContext<DataContextType | null>(null);
 
-// Initial Mock Data
-const INITIAL_SERVICES: Service[] = [];
-const INITIAL_RENTALS: Rental[] = [];
-
 export function DataProvider({ children }: { children: ReactNode }) {
-    const [services, setServices] = useState<Service[]>(INITIAL_SERVICES);
-    const [rentals, setRentals] = useState<Rental[]>(INITIAL_RENTALS);
+    const { user } = useAuth();
+    const [services, setServices] = useState<Service[]>([]);
+    const [rentals, setRentals] = useState<Rental[]>([]);
     const [bookings, setBookings] = useState<Booking[]>([]);
-    const [isLoaded, setIsLoaded] = useState(false);
 
-    // Load from LocalStorage on mount
-    useEffect(() => {
-        const storedServices = localStorage.getItem("servicehub_services");
-        if (storedServices) setServices(JSON.parse(storedServices));
+    const refreshData = useCallback(async () => {
+        try {
+            const fetchedServices = await apiClient.get("/api/services");
+            
+            // Map MongoDB services to local Service and Rental types
+            // For now, service/rental distinction might be by a field
+            const allItems = fetchedServices.map((s: any) => ({
+                ...s,
+                id: s._id,
+                price: s.pricing.amount,
+                priceUnit: s.pricing.unit,
+                image: s.media?.[0] || "",
+                reviews: s.reviewCount || 0,
+                providerName: s.providerId?.name || "Unknown",
+                providerId: s.providerId?._id || s.providerId
+            }));
 
-        const storedBookings = localStorage.getItem("servicehub_bookings");
-        if (storedBookings) setBookings(JSON.parse(storedBookings));
+            setServices(allItems.filter((i: any) => i.type === 'service'));
+            setRentals(allItems.filter((i: any) => i.type === 'rental'));
 
-        const storedRentals = localStorage.getItem("servicehub_rentals");
-        if (storedRentals) setRentals(JSON.parse(storedRentals));
-
-        setIsLoaded(true);
-    }, []);
-
-    // Save to LocalStorage on change (ONLY after initial load)
-    useEffect(() => {
-        if (isLoaded) {
-            localStorage.setItem("servicehub_services", JSON.stringify(services));
+            if (user) {
+                const fetchedBookings = await apiClient.get(`/api/bookings?userId=${user.id}&role=${user.role}`);
+                setBookings(fetchedBookings.map((b: any) => ({
+                    ...b,
+                    id: b._id,
+                    serviceTitle: b.serviceId?.title || "Unknown Service",
+                    customerName: b.customerId?.name || "Unknown Customer",
+                    providerName: b.providerId?.name || "Unknown Provider",
+                    date: new Date(b.bookingDate).toLocaleDateString(),
+                    time: b.timeSlot || "",
+                    amount: b.totalAmount,
+                    status: b.status.charAt(0).toUpperCase() + b.status.slice(1) // Map to UI status
+                })));
+            }
+        } catch (error) {
+            console.error("Failed to fetch data:", error);
         }
-    }, [services, isLoaded]);
+    }, [user]);
 
     useEffect(() => {
-        if (isLoaded) {
-            localStorage.setItem("servicehub_bookings", JSON.stringify(bookings));
+        refreshData();
+    }, [refreshData]);
+
+    const addService = useCallback(async (serviceData: Omit<Service, "id" | "rating" | "reviews">) => {
+        try {
+            await apiClient.post("/api/services", {
+                ...serviceData,
+                type: 'service',
+                pricing: { amount: serviceData.price, unit: serviceData.priceUnit },
+                media: [serviceData.image],
+                providerId: serviceData.providerId
+            });
+            await refreshData();
+        } catch (error) {
+            console.error("Failed to add service:", error);
         }
-    }, [bookings, isLoaded]);
+    }, [refreshData]);
 
-    useEffect(() => {
-        if (isLoaded) {
-            localStorage.setItem("servicehub_rentals", JSON.stringify(rentals));
+    const addRental = useCallback(async (rentalData: Omit<Rental, "id" | "rating" | "reviews">) => {
+        try {
+            await apiClient.post("/api/services", {
+                ...rentalData,
+                type: 'rental',
+                pricing: { amount: rentalData.price, unit: rentalData.priceUnit },
+                media: [rentalData.image],
+                providerId: rentalData.providerId
+            });
+            await refreshData();
+        } catch (error) {
+            console.error("Failed to add rental:", error);
         }
-    }, [rentals, isLoaded]);
+    }, [refreshData]);
 
-    const addService = useCallback((serviceData: Omit<Service, "id" | "rating" | "reviews">) => {
-        const newService: Service = {
-            ...serviceData,
-            id: `svc-${Date.now()}`,
-            rating: 0,
-            reviews: 0,
-        };
-        setServices((prev) => [...prev, newService]);
-    }, []);
+    const addBooking = useCallback(async (bookingData: Omit<Booking, "id" | "status">) => {
+        try {
+            await apiClient.post("/api/bookings", {
+                ...bookingData,
+                bookingDate: new Date(bookingData.date),
+                timeSlot: bookingData.time,
+                totalAmount: bookingData.amount,
+                status: 'pending'
+            });
+            await refreshData();
+        } catch (error) {
+            console.error("Failed to add booking:", error);
+        }
+    }, [refreshData]);
 
-    const addRental = useCallback((rentalData: Omit<Rental, "id" | "rating" | "reviews">) => {
-        const newRental: Rental = {
-            ...rentalData,
-            id: `rnt-${Date.now()}`,
-            rating: 0,
-            reviews: 0,
-        };
-        setRentals((prev) => [...prev, newRental]);
-    }, []);
-
-    const addBooking = useCallback((bookingData: Omit<Booking, "id" | "status">) => {
-        const newBooking: Booking = {
-            ...bookingData,
-            id: `ord-${Date.now()}`,
-            status: "Pending",
-        };
-        setBookings((prev) => [newBooking, ...prev]);
-    }, []);
-
-    const updateBookingStatus = useCallback((id: string, status: Booking["status"]) => {
-        setBookings((prev) =>
-            prev.map((b) => (b.id === id ? { ...b, status } : b))
-        );
-    }, []);
+    const updateBookingStatus = useCallback(async (id: string, status: Booking["status"]) => {
+        try {
+            // Ideally we'd have a PATCH /api/bookings/:id
+            // For now let's assume PATCH /api/bookings works with id in body
+             await apiClient.patch("/api/bookings", { id, status: status.toLowerCase() });
+             await refreshData();
+        } catch (error) {
+            console.error("Failed to update booking status:", error);
+        }
+    }, [refreshData]);
 
     const getProviderBookings = useCallback((providerId: string) => {
         return bookings.filter((b) => b.providerId === providerId);
@@ -168,6 +199,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
                 updateBookingStatus,
                 getProviderBookings,
                 getCustomerBookings,
+                refreshData,
             }}
         >
             {children}

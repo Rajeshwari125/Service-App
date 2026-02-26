@@ -15,6 +15,12 @@ import {
   CreditCard,
   Bell,
   Navigation,
+  ClipboardList,
+  PlusCircle,
+  Wallet,
+  LayoutDashboard,
+  Package,
+  Star,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -28,16 +34,31 @@ export function SidebarMenu({ isOpen, onClose }: SidebarMenuProps) {
   const { user, logout } = useAuth();
   const pathname = usePathname();
 
-  const menuItems = [
+  // Employee/Provider navigation items
+  const employeeMenuItems = [
+    { icon: LayoutDashboard, label: "Dashboard", href: "/" },
+    { icon: ClipboardList, label: "Manage Bookings", href: "/provider/manage-bookings" },
+    { icon: PlusCircle, label: "Add Listing", href: "/provider/add-listing" },
+    { icon: Bell, label: "Notifications", href: "/notifications" },
+    { icon: History, label: "Booking History", href: "/history" },
+    { icon: Wallet, label: "Earnings", href: "/payments" },
+    { icon: Star, label: "Customer Reviews", href: "/provider/reviews" },
+    { icon: HelpCircle, label: "Help Center", href: "/support" },
+  ];
+
+  // Customer navigation items
+  const customerMenuItems = [
     { icon: Home, label: "Home", href: "/" },
     { icon: Briefcase, label: "My Bookings", href: "/orders" },
     { icon: Heart, label: "Favourites", href: "/favourites" },
     { icon: Bell, label: "Notifications", href: "/notifications" },
-    { icon: History, label: "Job History", href: "/history" },
+    { icon: History, label: "Booking History", href: "/history" },
     { icon: CreditCard, label: "Payments", href: "/payments" },
-    { icon: Settings, label: "Settings", href: "/settings" },
     { icon: HelpCircle, label: "Help Center", href: "/support" },
   ];
+
+  const isEmployee = user?.role === "employee" || user?.role === "provider";
+  const menuItems = isEmployee ? employeeMenuItems : customerMenuItems;
 
   const handleLogout = () => {
     logout();
@@ -79,11 +100,13 @@ export function SidebarMenu({ isOpen, onClose }: SidebarMenuProps) {
               <div className="flex flex-col">
                 <h2 className="text-xl font-black tracking-tight leading-none mb-1">{user?.name || "Guest"}</h2>
                 <p className="text-[10px] font-black uppercase tracking-widest text-white/40">
-                  {user?.role === "employee"
-                    ? `Partner ID: ${user.employeeId}`
-                    : user?.role === "admin"
-                      ? "System Admin"
-                      : `+91 ${user?.mobile}`}
+                  {(user?.role === "employee" || user?.role === "provider") ? (
+                    `Partner ID: ${user.employeeId || 'P-' + user.id.slice(-4)}`
+                  ) : user?.role === "admin" ? (
+                    "System Admin"
+                  ) : (
+                    `+91 ${user?.mobile}`
+                  )}
                 </p>
               </div>
             </div>
@@ -99,14 +122,14 @@ export function SidebarMenu({ isOpen, onClose }: SidebarMenuProps) {
           {/* Role Badge */}
           <div className="relative z-10 mt-6 flex">
             <div className={`flex items-center gap-2 rounded-xl px-3 py-1.5 text-[9px] font-black uppercase tracking-wider border shadow-sm ${user?.role === "admin"
-                ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
-                : user?.role === "employee"
-                  ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                  : "bg-primary/20 text-primary-foreground border-white/10"
+              ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
+              : (user?.role === "employee" || user?.role === "provider")
+                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                : "bg-primary/20 text-primary-foreground border-white/10"
               }`}>
-              <div className={`h-1.5 w-1.5 rounded-full animate-pulse ${user?.role === "admin" ? "bg-rose-400" : user?.role === "employee" ? "bg-emerald-400" : "bg-primary"
+              <div className={`h-1.5 w-1.5 rounded-full animate-pulse ${user?.role === "admin" ? "bg-rose-400" : (user?.role === "employee" || user?.role === "provider") ? "bg-emerald-400" : "bg-primary"
                 }`} />
-              {user?.role || "Visitor"} Member
+              {isEmployee ? "Partner" : user?.role === "admin" ? "Admin" : "Customer"} Member
             </div>
           </div>
 
@@ -129,8 +152,8 @@ export function SidebarMenu({ isOpen, onClose }: SidebarMenuProps) {
                   href={item.href}
                   onClick={onClose}
                   className={`group relative flex items-center gap-4 rounded-2xl px-4 py-4 transition-all duration-300 animate-slide-up ${isActive
-                      ? "bg-primary/5 text-primary shadow-sm"
-                      : "text-slate-600 hover:bg-slate-50"
+                    ? "bg-primary/5 text-primary shadow-sm"
+                    : "text-slate-600 hover:bg-slate-50"
                     }`}
                   style={{ animationDelay: `${idx * 50}ms` }}
                 >

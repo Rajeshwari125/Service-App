@@ -13,13 +13,13 @@ interface RegisterFormProps {
 }
 
 export function RegisterForm({ onSwitch, onOtpRequired }: RegisterFormProps) {
-  const { users } = useAuth();
+  const { checkUserExists } = useAuth();
   const [role, setRole] = useState<UserRole>("customer");
   const [name, setName] = useState("");
   const [mobile, setMobile] = useState("");
   const [error, setError] = useState("");
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     setError("");
     if (!name || !mobile) {
       setError("Please fill in all fields");
@@ -31,7 +31,7 @@ export function RegisterForm({ onSwitch, onOtpRequired }: RegisterFormProps) {
     }
 
     // Check if mobile already exists
-    const exists = users.find((u) => u.mobile === mobile);
+    const exists = await checkUserExists(mobile);
     if (exists) {
       setError("Mobile number already registered");
       return;

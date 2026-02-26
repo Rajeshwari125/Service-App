@@ -56,7 +56,7 @@ export function OtpVerification({
     }
   };
 
-  const handleVerify = () => {
+  const handleVerify = async () => {
     setError("");
     const enteredOtp = otp.join("");
     if (enteredOtp.length < 4) {
@@ -67,14 +67,14 @@ export function OtpVerification({
     // Verify OTP locally
     if (verifyOtp(enteredOtp)) {
       if (mode === "register" && onRegisterDetails) {
-        const result = register(onRegisterDetails);
+        const result = await register(onRegisterDetails);
         if (result.success) {
           onSuccess();
         } else {
           setError(result.error || "Registration failed");
         }
       } else if (mode === "login") {
-        const result = loginWithMobile(mobile);
+        const result = await loginWithMobile(mobile);
         if (result.success) {
           onSuccess();
         } else {

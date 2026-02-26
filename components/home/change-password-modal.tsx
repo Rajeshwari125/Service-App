@@ -21,7 +21,7 @@ export function ChangePasswordModal({ onClose }: ChangePasswordModalProps) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setError("");
     if (!oldPassword || !newPassword || !confirmPassword) {
       setError("Please fill in all fields");
@@ -36,7 +36,7 @@ export function ChangePasswordModal({ onClose }: ChangePasswordModalProps) {
       return;
     }
     if (!user) return;
-    const result = changePassword(user.id, oldPassword, newPassword);
+    const result = await changePassword(user.id, oldPassword, newPassword);
     if (result.success) {
       setSuccess(true);
       setTimeout(onClose, 1500);

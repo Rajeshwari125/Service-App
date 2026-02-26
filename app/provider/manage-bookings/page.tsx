@@ -39,22 +39,22 @@ export default function ManageBookingsPage() {
         completed: providerBookings.filter(b => b.status === "Completed").length,
     };
 
-    const handleAccept = (id: string) => {
-        updateBookingStatus(id, "Accepted");
+    const handleAccept = async (id: string) => {
+        await updateBookingStatus(id, "Accepted");
         toast.success("Booking accepted! ✅", {
             description: "The customer will be notified."
         });
     };
 
-    const handleReject = (id: string) => {
-        updateBookingStatus(id, "Rejected");
+    const handleReject = async (id: string) => {
+        await updateBookingStatus(id, "Rejected");
         toast.error("Booking rejected", {
             description: "The customer will be notified."
         });
     };
 
-    const handleComplete = (id: string) => {
-        updateBookingStatus(id, "Completed");
+    const handleComplete = async (id: string) => {
+        await updateBookingStatus(id, "Completed");
         toast.success("Job marked as completed! 🎉", {
             description: "Payment will be processed."
         });

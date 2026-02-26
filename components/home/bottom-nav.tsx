@@ -1,18 +1,31 @@
 "use client";
 
-import { Home, Search, Calendar, User } from "lucide-react";
+import { Home, Search, Calendar, User, LayoutDashboard, ClipboardList, PlusCircle } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth-context";
 
 export function BottomNav() {
     const pathname = usePathname();
     const router = useRouter();
+    const { user } = useAuth();
 
-    const navItems = [
+    // Employee/Provider bottom nav
+    const employeeNavItems = [
+        { icon: LayoutDashboard, label: "Dashboard", href: "/" },
+        { icon: ClipboardList, label: "Bookings", href: "/provider/manage-bookings" },
+        { icon: PlusCircle, label: "Add", href: "/provider/add-listing" },
+        { icon: User, label: "Profile", href: "/settings" },
+    ];
+
+    // Customer bottom nav
+    const customerNavItems = [
         { icon: Home, label: "Home", href: "/" },
         { icon: Search, label: "Explore", href: "/browse/service/all" },
         { icon: Calendar, label: "Bookings", href: "/orders" },
         { icon: User, label: "Profile", href: "/settings" },
     ];
+
+    const navItems = user?.role === "employee" ? employeeNavItems : customerNavItems;
 
     return (
         <div className="sticky bottom-0 z-40 flex w-full items-center justify-around border-t border-border bg-card/80 px-2 py-3 backdrop-blur-lg">
@@ -43,3 +56,4 @@ export function BottomNav() {
         </div>
     );
 }
+

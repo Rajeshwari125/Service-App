@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Loader2, Image as ImageIcon, Upload, X } from "lucide-react";
+import { ArrowLeft, Loader2, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,11 +18,11 @@ import { useAuth } from "@/lib/auth-context";
 import { useData } from "@/lib/data-context";
 import { toast } from "sonner";
 
-const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1581578731117-104f2a417954?q=80&w=400&h=300&auto=format&fit=crop";
+const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=400&h=300&auto=format&fit=crop";
 
-export default function AddServicePage() {
+export default function AddRentalPage() {
     const { user } = useAuth();
-    const { addService } = useData();
+    const { addRental } = useData();
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -30,36 +30,37 @@ export default function AddServicePage() {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [formData, setFormData] = useState({
-        title: "",
+        name: "",
         category: "",
         price: "",
-        priceUnit: "visit",
+        priceUnit: "day",
+        durationUnit: "day",
         description: "",
-        location: "Madurai, India",
         image: DEFAULT_IMAGE,
-        availability: "Available Now"
+        isAvailable: true,
     });
 
     const categories = [
-        "Plumbing",
-        "Electrician",
-        "Cleaning",
-        "Painting",
-        "AC Service",
-        "Moving"
+        "Vehicles",
+        "Tools & Equipment",
+        "Electronics",
+        "Furniture",
+        "Party & Events",
+        "Sports & Recreation",
+        "Cameras & Photography",
+        "Musical Instruments",
+        "Others",
     ];
 
     const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        // Validate file type
         if (!file.type.startsWith("image/")) {
             toast.error("Please select a valid image file");
             return;
         }
 
-        // Validate file size (max 5MB)
         if (file.size > 5 * 1024 * 1024) {
             toast.error("Image size must be less than 5MB");
             return;
@@ -88,7 +89,7 @@ export default function AddServicePage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!formData.title || !formData.category || !formData.price || !formData.description) {
+        if (!formData.name || !formData.category || !formData.price || !formData.description) {
             toast.error("Please fill all required fields");
             return;
         }
@@ -100,27 +101,26 @@ export default function AddServicePage() {
 
         setLoading(true);
 
-        // Simulate network
         await new Promise(resolve => setTimeout(resolve, 800));
 
         try {
-            await addService({
+            addRental({
                 providerId: user.id,
                 providerName: user.name,
-                title: formData.title,
+                name: formData.name,
                 category: formData.category.toLowerCase(),
                 price: parseFloat(formData.price),
                 priceUnit: formData.priceUnit,
                 description: formData.description,
-                location: formData.location,
                 image: formData.image,
-                availability: formData.availability
+                durationUnit: formData.durationUnit,
+                isAvailable: formData.isAvailable,
             });
 
-            toast.success("Service added successfully!");
+            toast.success("Rental listed successfully!");
             router.push("/");
         } catch (error) {
-            toast.error("Failed to add service");
+            toast.error("Failed to list rental");
         } finally {
             setLoading(false);
         }
@@ -137,7 +137,7 @@ export default function AddServicePage() {
                     >
                         <ArrowLeft size={20} />
                     </Link>
-                    <h1 className="text-lg font-bold">Add New Service</h1>
+                    <h1 className="text-lg font-bold">List New Rental</h1>
                 </div>
             </header>
 
@@ -146,11 +146,11 @@ export default function AddServicePage() {
                     {/* Basic Info */}
                     <div className="space-y-4">
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-foreground">Service Title *</label>
+                            <label className="text-sm font-bold text-foreground">Rental Item Name *</label>
                             <Input
-                                placeholder="e.g. Professional AC Deep Cleaning"
-                                value={formData.title}
-                                onChange={e => setFormData({ ...formData, title: e.target.value })}
+                                placeholder="e.g. Mahindra Thar 4x4, Power Drill, DSLR Camera"
+                                value={formData.name}
+                                onChange={e => setFormData({ ...formData, name: e.target.value })}
                                 required
                                 className="rounded-xl h-11"
                             />
@@ -186,19 +186,19 @@ export default function AddServicePage() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-bold text-foreground">Unit *</label>
+                                <label className="text-sm font-bold text-foreground">Duration *</label>
                                 <Select
-                                    value={formData.priceUnit}
-                                    onValueChange={val => setFormData({ ...formData, priceUnit: val })}
+                                    value={formData.durationUnit}
+                                    onValueChange={val => setFormData({ ...formData, durationUnit: val, priceUnit: val })}
                                 >
                                     <SelectTrigger className="h-11 rounded-xl">
-                                        <SelectValue placeholder="Unit" />
+                                        <SelectValue placeholder="Duration" />
                                     </SelectTrigger>
                                     <SelectContent className="rounded-xl">
-                                        <SelectItem value="visit">Per Visit</SelectItem>
                                         <SelectItem value="hour">Per Hour</SelectItem>
                                         <SelectItem value="day">Per Day</SelectItem>
-                                        <SelectItem value="sqft">Per Sq. Ft.</SelectItem>
+                                        <SelectItem value="week">Per Week</SelectItem>
+                                        <SelectItem value="month">Per Month</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -207,60 +207,39 @@ export default function AddServicePage() {
                         <div className="space-y-2">
                             <label className="text-sm font-bold text-foreground">Description *</label>
                             <Textarea
-                                placeholder="Describe what's included in your service..."
+                                placeholder="Describe the rental item, its condition, and what's included..."
                                 value={formData.description}
                                 onChange={e => setFormData({ ...formData, description: e.target.value })}
                                 required
                                 className="rounded-xl min-h-[120px] resize-none"
                             />
                         </div>
-
-                        <div className="space-y-2">
-                            <label className="text-sm font-bold text-foreground">Location</label>
-                            <Input
-                                value={formData.location}
-                                onChange={e => setFormData({ ...formData, location: e.target.value })}
-                                className="rounded-xl h-11"
-                            />
-                        </div>
                     </div>
 
                     {/* Image Upload */}
                     <div className="space-y-2">
-                        <label className="text-sm font-bold text-foreground">Service Photo</label>
+                        <label className="text-sm font-bold text-foreground">Rental Photo</label>
 
-                        {/* Hidden file input */}
                         <input
                             ref={fileInputRef}
                             type="file"
                             accept="image/*"
                             onChange={handleImageSelect}
                             className="hidden"
-                            id="service-image-upload"
+                            id="rental-image-upload"
                         />
 
                         {imagePreview ? (
-                            /* Image Preview */
                             <div className="relative rounded-2xl border border-border overflow-hidden bg-secondary/20">
                                 <img
                                     src={imagePreview}
-                                    alt="Service preview"
+                                    alt="Rental preview"
                                     className="w-full h-48 object-cover"
                                 />
-                                <div className="absolute top-2 right-2 flex gap-2">
-                                    <button
-                                        type="button"
-                                        onClick={handleRemoveImage}
-                                        className="flex h-8 w-8 items-center justify-center rounded-full bg-red-500 text-white shadow-lg hover:bg-red-600 transition-colors"
-                                    >
-                                        <X size={16} />
-                                    </button>
-                                </div>
                                 <div className="px-4 py-3 bg-background/80 backdrop-blur-sm">
                                     <p className="text-sm font-medium text-foreground truncate">{imageFileName}</p>
                                     <p className="text-xs text-muted-foreground mt-0.5">Tap to change image</p>
                                 </div>
-                                {/* Clicking the preview area also opens file picker */}
                                 <button
                                     type="button"
                                     onClick={() => fileInputRef.current?.click()}
@@ -268,7 +247,6 @@ export default function AddServicePage() {
                                     style={{ background: "transparent", border: "none" }}
                                     aria-label="Change image"
                                 />
-                                {/* Re-render the remove button on top */}
                                 <button
                                     type="button"
                                     onClick={(e) => { e.stopPropagation(); handleRemoveImage(); }}
@@ -278,18 +256,17 @@ export default function AddServicePage() {
                                 </button>
                             </div>
                         ) : (
-                            /* Upload Placeholder */
                             <button
                                 type="button"
                                 onClick={() => fileInputRef.current?.click()}
                                 className="w-full rounded-2xl border-2 border-dashed border-border bg-secondary/20 p-8 text-center cursor-pointer hover:border-primary/50 hover:bg-secondary/40 transition-all duration-200 group"
                             >
                                 <div className="flex flex-col items-center gap-3">
-                                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
+                                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-500 group-hover:bg-emerald-500/20 transition-colors">
                                         <Upload size={24} />
                                     </div>
                                     <div>
-                                        <p className="text-sm font-semibold text-foreground">Upload Service Photo</p>
+                                        <p className="text-sm font-semibold text-foreground">Upload Rental Photo</p>
                                         <p className="text-xs text-muted-foreground mt-1">
                                             Tap to select from your folder
                                         </p>
@@ -306,7 +283,7 @@ export default function AddServicePage() {
                     <div className="pt-4">
                         <Button
                             type="submit"
-                            className="w-full h-14 rounded-2xl text-lg font-bold shadow-lg"
+                            className="w-full h-14 rounded-2xl text-lg font-bold shadow-lg bg-emerald-600 hover:bg-emerald-700"
                             disabled={loading}
                         >
                             {loading ? (
@@ -315,7 +292,7 @@ export default function AddServicePage() {
                                     Publishing...
                                 </>
                             ) : (
-                                "List Service"
+                                "List Rental"
                             )}
                         </Button>
                     </div>

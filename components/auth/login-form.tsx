@@ -19,7 +19,7 @@ export function LoginForm({ onSwitch, onSuccess }: LoginFormProps) {
   const [error, setError] = useState("");
   const [isOtpStep, setIsOtpStep] = useState(false);
 
-  const handleSendOtp = () => {
+  const handleSendOtp = async () => {
     setError("");
     if (!identifier) {
       setError("Please enter your mobile number");
@@ -31,9 +31,8 @@ export function LoginForm({ onSwitch, onSuccess }: LoginFormProps) {
     }
 
     // Check if user exists (for Customer/Employee)
-    // Admin login might still need password? 
-    // Let's assume for now we use OTP for everyone as requested.
-    if (!checkUserExists(identifier)) {
+    const exists = await checkUserExists(identifier);
+    if (!exists) {
       setError("User not found. Please register first.");
       return;
     }
