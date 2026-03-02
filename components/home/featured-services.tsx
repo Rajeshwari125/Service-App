@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import { useData, type Service, type Rental } from "@/lib/data-context";
-import { Star, MapPin, ArrowRight, Tag } from "lucide-react";
+import { Star, MapPin, ArrowRight, Tag, Search } from "lucide-react";
 import { BookingModal } from "@/components/booking/booking-modal";
 import { RentalBookingModal } from "@/components/booking/rental-booking-modal";
+import { useSearch } from "@/lib/search-context";
 
 export function FeaturedServices() {
     const { services, rentals } = useData();
+    const { searchQuery } = useSearch();
     const [selectedService, setSelectedService] = useState<Service | null>(null);
     const [selectedRental, setSelectedRental] = useState<Rental | null>(null);
     const [serviceModalOpen, setServiceModalOpen] = useState(false);
@@ -15,11 +17,21 @@ export function FeaturedServices() {
 
     const hasData = services.length > 0 || rentals.length > 0;
 
-    const serviceItems = services.map(s => ({ ...s, type: 'service' as const }));
+    const serviceItems = services.map(s => ({ ...s, title: s.title, type: 'service' as const }));
     const rentalItems = rentals.map(r => ({ ...r, title: r.name, type: 'rental' as const }));
-    const displayItems = hasData
-        ? [...serviceItems, ...rentalItems].slice(0, 6)
-        : [];
+
+    let allItems = [...serviceItems, ...rentalItems];
+
+    if (searchQuery) {
+        allItems = allItems.filter(item => {
+            const searchLower = searchQuery.toLowerCase();
+            return (item.title || "").toLowerCase().includes(searchLower) ||
+                (item.providerName || "").toLowerCase().includes(searchLower) ||
+                (item.category || "").toLowerCase().includes(searchLower);
+        });
+    }
+
+    const displayItems = allItems.slice(0, 8);
 
     const handleCardClick = (item: any) => {
         if (item.type === 'service') {
@@ -38,6 +50,19 @@ export function FeaturedServices() {
     };
 
     if (displayItems.length === 0) {
+        if (searchQuery) {
+            return (
+                <div className="flex flex-col items-center justify-center py-12 px-6 text-center animate-fade-in">
+                    <div className="h-16 w-16 rounded-2xl bg-secondary flex items-center justify-center mb-4">
+                        <Search size={32} className="text-muted-foreground/30" />
+                    </div>
+                    <h3 className="text-base font-bold text-foreground tracking-tight">No Matches Found</h3>
+                    <p className="mt-1 text-xs text-muted-foreground leading-relaxed max-w-[200px]">
+                        We couldn't find any services or tools matching &quot;{searchQuery}&quot;.
+                    </p>
+                </div>
+            );
+        }
         return null;
     }
 
@@ -45,10 +70,14 @@ export function FeaturedServices() {
         <>
             <div className="flex flex-col gap-4 px-4 py-6">
                 <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-black text-foreground tracking-tight">Featured Spotlight</h2>
-                    <button className="text-xs font-bold text-primary flex items-center gap-1">
-                        Explore All <ArrowRight size={14} />
-                    </button>
+                    <h2 className="text-lg font-black text-foreground tracking-tight">
+                        {searchQuery ? `Results for "${searchQuery}"` : "Featured Spotlight"}
+                    </h2>
+                    {!searchQuery && (
+                        <button className="text-xs font-bold text-primary flex items-center gap-1">
+                            Explore All <ArrowRight size={14} />
+                        </button>
+                    )}
                 </div>
 
                 <div className="grid grid-cols-1 gap-4">

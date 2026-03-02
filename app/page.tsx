@@ -15,6 +15,7 @@ import { EmployeeHomeContent } from "@/components/home/employee-home-content";
 import { AdminHomeContent } from "@/components/home/admin-home-content";
 import { BottomNav } from "@/components/home/bottom-nav";
 import { FeaturedServices } from "@/components/home/featured-services";
+import { useSearch } from "@/lib/search-context";
 
 type AuthView = "login" | "register" | "otp";
 
@@ -25,6 +26,7 @@ interface PendingRegistration {
 
 export default function Page() {
   const { user } = useAuth();
+  const { searchQuery } = useSearch();
   const [authView, setAuthView] = useState<AuthView>("login");
   const [menuOpen, setMenuOpen] = useState(false);
   const [pendingReg, setPendingReg] = useState<PendingRegistration | null>(
@@ -110,10 +112,14 @@ export default function Page() {
         ) : (
           <div className="pb-32">
             <SearchBar />
-            <OffersCarousel />
-            <div className="pt-2">
-              <CategoriesSection />
-            </div>
+            {!searchQuery && (
+              <>
+                <OffersCarousel />
+                <div className="pt-2">
+                  <CategoriesSection />
+                </div>
+              </>
+            )}
             <FeaturedServices />
           </div>
         )}

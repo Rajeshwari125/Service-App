@@ -30,6 +30,8 @@ export const viewport: Viewport = {
   userScalable: false,
 };
 
+import { SearchProvider } from "@/lib/search-context";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -42,11 +44,13 @@ export default function RootLayout({
           <AuthProvider>
             <DataProvider>
               <ReviewProvider>
-                <div className="flex min-h-screen flex-col items-center justify-center">
-                  <div className="relative flex h-screen w-full max-w-md flex-col overflow-hidden bg-background shadow-2xl">
-                    {children}
+                <SearchProvider>
+                  <div className="flex min-h-screen flex-col items-center justify-center">
+                    <div className="relative flex h-screen w-full max-w-md flex-col overflow-hidden bg-background shadow-2xl">
+                      {children}
+                    </div>
                   </div>
-                </div>
+                </SearchProvider>
               </ReviewProvider>
             </DataProvider>
           </AuthProvider>

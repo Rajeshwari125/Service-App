@@ -13,12 +13,15 @@ import {
     Tag,
     Share2,
     Calendar,
-    Navigation
+    Navigation,
+    Search,
+    X
 } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useData, type Service, type Rental } from "@/lib/data-context";
 import { BookingModal } from "@/components/booking/booking-modal";
+import { useSearch } from "@/lib/search-context";
 
 export default function BrowsePage() {
     const params = useParams();
@@ -27,9 +30,11 @@ export default function BrowsePage() {
     const categoryQuery = params?.category as string;
 
     const { services, rentals } = useData();
+    const { searchQuery, setSearchQuery } = useSearch();
     const [filterOpen, setFilterOpen] = useState(false);
     const [selectedService, setSelectedService] = useState<Service | null>(null);
     const [bookingOpen, setBookingOpen] = useState(false);
+    const [isSearchVisible, setIsSearchVisible] = useState(!!searchQuery);
 
     // Determine title from category slug
     const title = categoryQuery
@@ -39,9 +44,20 @@ export default function BrowsePage() {
     const isService = type === "service";
 
     // Filter items based on category
-    const items = isService
-        ? services.filter(s => s.category.toLowerCase().includes(categoryQuery.toLowerCase()) || categoryQuery === "all")
-        : rentals.filter(r => r.category.toLowerCase().includes(categoryQuery.toLowerCase()) || categoryQuery === "all");
+    const categoryItems = isService
+        ? services.filter(s => s.category.toLowerCase().includes((categoryQuery || "").toLowerCase()) || categoryQuery === "all")
+        : rentals.filter(r => r.category.toLowerCase().includes((categoryQuery || "").toLowerCase()) || categoryQuery === "all");
+
+    // further filter by search query
+    const items = categoryItems.filter(item => {
+        const name = (item as any).name || (item as any).title || "";
+        const provider = (item as any).providerName || "";
+        const category = (item as any).category || "";
+        const searchLower = searchQuery.toLowerCase();
+        return name.toLowerCase().includes(searchLower) ||
+            provider.toLowerCase().includes(searchLower) ||
+            category.toLowerCase().includes(searchLower);
+    });
 
     const handleBook = (service: Service) => {
         setSelectedService(service);
@@ -59,24 +75,59 @@ export default function BrowsePage() {
             {/* Ultra Premium Header */}
             <div className="bg-white px-6 pt-10 pb-4 border-b border-slate-100 shadow-sm relative z-20">
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <Link
-                            href="/"
-                            className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-xl active:scale-90 transition-all font-black"
-                        >
-                            <ArrowLeft size={20} />
-                        </Link>
-                        <div>
-                            <h1 className="text-xl font-black text-slate-900 tracking-tight">{title}</h1>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{type} Collections • {items.length} Units</p>
-                        </div>
+                    <div className="flex items-center gap-4 flex-1">
+                        {!isSearchVisible ? (
+                            <>
+                                <Link
+                                    href="/"
+                                    className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-xl active:scale-90 transition-all font-black"
+                                >
+                                    <ArrowLeft size={20} />
+                                </Link>
+                                <div>
+                                    <h1 className="text-xl font-black text-slate-900 tracking-tight">{title}</h1>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{type} Collections • {items.length} Units</p>
+                                </div>
+                            </>
+                        ) : (
+                            <div className="flex items-center gap-3 flex-1 bg-slate-50 rounded-2xl border border-slate-100 px-4 py-2 animate-in slide-in-from-right-4">
+                                <Search size={16} className="text-slate-400" />
+                                <input
+                                    autoFocus
+                                    type="text"
+                                    placeholder={`Search in ${title}...`}
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="flex-1 bg-transparent text-sm font-bold text-slate-900 outline-none placeholder:text-slate-400"
+                                />
+                                <button
+                                    onClick={() => {
+                                        setIsSearchVisible(false);
+                                        setSearchQuery("");
+                                    }}
+                                    className="text-slate-400"
+                                >
+                                    <X size={16} />
+                                </button>
+                            </div>
+                        )}
                     </div>
-                    <button
-                        onClick={() => setFilterOpen(!filterOpen)}
-                        className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-50 text-slate-400 border border-slate-100 shadow-sm active:scale-90 transition-all"
-                    >
-                        <Filter size={18} />
-                    </button>
+                    <div className="flex items-center gap-2 ml-4">
+                        {!isSearchVisible && (
+                            <button
+                                onClick={() => setIsSearchVisible(true)}
+                                className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-slate-400 border border-slate-100 shadow-sm active:scale-90 transition-all hover:text-slate-900"
+                            >
+                                <Search size={18} />
+                            </button>
+                        )}
+                        <button
+                            onClick={() => setFilterOpen(!filterOpen)}
+                            className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-50 text-slate-400 border border-slate-100 shadow-sm active:scale-90 transition-all hover:text-slate-900"
+                        >
+                            <Filter size={18} />
+                        </button>
+                    </div>
                 </div>
 
                 {/* Horizontal Category Pill Scroll */}
