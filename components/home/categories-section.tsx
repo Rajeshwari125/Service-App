@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+
 import {
   Wrench,
   Paintbrush,
@@ -76,27 +76,24 @@ function CategoryItem({ category }: { category: Category }) {
   );
 }
 
-function SectionTitle({ title }: { title: string }) {
+function SectionTitle({ title, href }: { title: string; href: string }) {
   return (
     <div className="flex items-center justify-between px-4 pb-3">
       <h2 className="text-lg font-black text-foreground tracking-tight">{title}</h2>
-      <button type="button" className="text-[11px] font-black text-primary uppercase tracking-wider bg-primary/5 px-3 py-1.5 rounded-full">
+      <Link href={href} className="text-[11px] font-black text-primary uppercase tracking-wider bg-primary/5 px-3 py-1.5 rounded-full">
         View All
-      </button>
+      </Link>
     </div>
   );
 }
 
 export function CategoriesSection() {
-  const [activeTab, setActiveTab] = useState<"service" | "rental">("service");
-
-  const currentCategories = activeTab === "service" ? serviceCategories : rentalCategories;
 
   return (
     <div className="flex flex-col gap-8 pb-10">
       {/* Popular Categories */}
       <section className="animate-fade-in">
-        <SectionTitle title="Popular Quick Picks" />
+        <SectionTitle title="Popular Quick Picks" href="/browse/service/all" />
         <div className="grid grid-cols-4 gap-4 px-4">
           {popularCategories.map((cat, idx) => (
             <div key={cat.name} className="animate-slide-up" style={{ animationDelay: `${idx * 100}ms` }}>
@@ -106,37 +103,27 @@ export function CategoriesSection() {
         </div>
       </section>
 
-      {/* Services & Rentals Tabs */}
-      <section className="flex flex-col gap-5 animate-fade-in" style={{ animationDelay: '300ms' }}>
+      {/* Services Section */}
+      <section className="flex flex-col gap-5 animate-fade-in" style={{ animationDelay: '200ms' }}>
+        <SectionTitle title="Services" href="/browse/service/all" />
         <div className="px-4">
-          <div className="flex p-1.5 bg-muted/80 rounded-2xl border border-border shadow-inner">
-            <button
-              onClick={() => setActiveTab("service")}
-              className={`flex-1 py-3 text-xs font-black rounded-xl transition-all duration-300 uppercase tracking-widest ${activeTab === "service"
-                ? "bg-primary text-primary-foreground shadow-lg scale-[1.02]"
-                : "text-muted-foreground hover:text-foreground"
-                }`}
-            >
-              Services
-            </button>
-            <button
-              onClick={() => setActiveTab("rental")}
-              className={`flex-1 py-3 text-xs font-black rounded-xl transition-all duration-300 uppercase tracking-widest ${activeTab === "rental"
-                ? "bg-primary text-primary-foreground shadow-lg scale-[1.02]"
-                : "text-muted-foreground hover:text-foreground"
-                }`}
-            >
-              Rentals
-            </button>
+          <div className="flex gap-x-5 overflow-x-auto pb-6 scrollbar-hide snap-x">
+            {serviceCategories.map((cat, idx) => (
+              <div key={`service-${cat.name}`} className="animate-slide-up" style={{ animationDelay: `${idx * 50}ms` }}>
+                <CategoryItem category={cat} />
+              </div>
+            ))}
           </div>
         </div>
+      </section>
 
+      {/* Rentals Section */}
+      <section className="flex flex-col gap-5 animate-fade-in" style={{ animationDelay: '400ms' }}>
+        <SectionTitle title="Rentals" href="/browse/rental/all" />
         <div className="px-4">
-          <div
-            className="flex gap-x-5 overflow-x-auto pb-6 scrollbar-hide snap-x"
-          >
-            {currentCategories.map((cat, idx) => (
-              <div key={`${activeTab}-${cat.name}`} className="animate-slide-up" style={{ animationDelay: `${idx * 50}ms` }}>
+          <div className="flex gap-x-5 overflow-x-auto pb-6 scrollbar-hide snap-x">
+            {rentalCategories.map((cat, idx) => (
+              <div key={`rental-${cat.name}`} className="animate-slide-up" style={{ animationDelay: `${idx * 50}ms` }}>
                 <CategoryItem category={cat} />
               </div>
             ))}

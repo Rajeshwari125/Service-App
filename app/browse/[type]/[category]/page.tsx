@@ -22,6 +22,8 @@ import { toast } from "sonner";
 import { useData, type Service, type Rental } from "@/lib/data-context";
 import { BookingModal } from "@/components/booking/booking-modal";
 import { useSearch } from "@/lib/search-context";
+import { staticServices } from "@/lib/static-services";
+import { staticRentals } from "@/lib/static-rentals";
 
 export default function BrowsePage() {
     const params = useParams();
@@ -43,21 +45,27 @@ export default function BrowsePage() {
 
     const isService = type === "service";
 
+    // Merge API data with static data (API data takes precedence, static fills gaps)
+    const allServices = services.length > 0 ? services : (staticServices as any[]);
+    const allRentals = rentals.length > 0 ? rentals : (staticRentals as any[]);
+
     // Filter items based on category
     const categoryItems = isService
-        ? services.filter(s => s.category.toLowerCase().includes((categoryQuery || "").toLowerCase()) || categoryQuery === "all")
-        : rentals.filter(r => r.category.toLowerCase().includes((categoryQuery || "").toLowerCase()) || categoryQuery === "all");
+        ? allServices.filter((s: any) => categoryQuery === "all" || s.category.toLowerCase().includes((categoryQuery || "").toLowerCase().replace(/-/g, " ")))
+        : allRentals.filter((r: any) => categoryQuery === "all" || r.category.toLowerCase().includes((categoryQuery || "").toLowerCase().replace(/-/g, " ")));
 
     // further filter by search query
-    const items = categoryItems.filter(item => {
-        const name = (item as any).name || (item as any).title || "";
-        const provider = (item as any).providerName || "";
-        const category = (item as any).category || "";
-        const searchLower = searchQuery.toLowerCase();
-        return name.toLowerCase().includes(searchLower) ||
-            provider.toLowerCase().includes(searchLower) ||
-            category.toLowerCase().includes(searchLower);
-    });
+    const items = searchQuery
+        ? categoryItems.filter((item: any) => {
+            const name = item.name || item.title || "";
+            const provider = item.providerName || "";
+            const category = item.category || "";
+            const searchLower = searchQuery.toLowerCase();
+            return name.toLowerCase().includes(searchLower) ||
+                provider.toLowerCase().includes(searchLower) ||
+                category.toLowerCase().includes(searchLower);
+        })
+        : categoryItems;
 
     const handleBook = (service: Service) => {
         setSelectedService(service);
@@ -194,21 +202,36 @@ export default function BrowsePage() {
                                     </div>
                                 </div>
 
+                                <p className="text-xs text-slate-500 mb-3">{(item as any).description}</p>
                                 <div className="flex items-center gap-4 py-4 border-t border-slate-50 mb-4">
                                     <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500">
-                                        <MapPin size={12} className="text-slate-300" /> Madras City
+                                        <MapPin size={12} className="text-slate-300" /> {(item as any).location || 'Madurai'}
                                     </div>
                                     <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-500">
-                                        <Clock size={12} className="text-slate-300" /> Available Now
+                                        <Clock size={12} className="text-slate-300" /> {(item as any).availability || 'Available Now'}
                                     </div>
                                 </div>
 
                                 <div className="flex gap-3">
                                     <button
-                                        onClick={() => isService ? handleBook(item as Service) : handleRent(item as any)}
+                                        onClick={() => {
+                                            const params = new URLSearchParams({
+                                                name: item.name || item.title || "",
+                                                price: String(item.price || 0),
+                                                provider: item.providerName || "",
+                                                category: item.category || "",
+                                                type: isService ? "service" : "rental",
+                                                rating: String(item.rating || 4.5),
+                                                image: item.image || "",
+                                                id: item.id || "",
+                                                providerId: item.providerId || "",
+                                                priceUnit: item.priceUnit || item.durationUnit || "visit",
+                                            });
+                                            router.push(`/checkout?${params.toString()}`);
+                                        }}
                                         className="flex-1 py-4 rounded-[1.5rem] bg-slate-900 text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-slate-950/20 active:scale-95 transition-all"
                                     >
-                                        {isService ? 'Request Booking' : 'Reserve Unit'}
+                                        {isService ? 'Book Now' : 'Rent Now'}
                                     </button>
                                     <button className="h-14 w-14 flex items-center justify-center rounded-[1.5rem] border border-slate-100 text-slate-400 hover:text-slate-900 hover:bg-slate-50 transition-all active:scale-95">
                                         <Share2 size={20} />

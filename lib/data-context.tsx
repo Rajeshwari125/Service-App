@@ -83,7 +83,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const refreshData = useCallback(async () => {
         try {
             const fetchedServices = await apiClient.get("/api/services");
-            
+
             // Map MongoDB services to local Service and Rental types
             // For now, service/rental distinction might be by a field
             const allItems = fetchedServices.map((s: any) => ({
@@ -102,7 +102,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
             if (user) {
                 const fetchedBookings = await apiClient.get(`/api/bookings?userId=${user.id}&role=${user.role}`);
-                setBookings(fetchedBookings.map((b: any) => ({
+                const mappedBookings = fetchedBookings.map((b: any) => ({
                     ...b,
                     id: b._id,
                     serviceTitle: b.serviceId?.title || "Unknown Service",
@@ -112,7 +112,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
                     time: b.timeSlot || "",
                     amount: b.totalAmount,
                     status: b.status.charAt(0).toUpperCase() + b.status.slice(1) // Map to UI status
-                })));
+                }));
+
+                setBookings(prev => {
+                    // Keep temp bookings that are not yet in the fetched list
+                    const tempBookings = prev.filter(b => b.id.startsWith('temp_'));
+                    const filteredTemp = tempBookings.filter(tb =>
+                        !mappedBookings.some((mb: any) => mb.serviceId === tb.serviceId && mb.date === tb.date && mb.time === tb.time)
+                    );
+                    return [...filteredTemp, ...mappedBookings];
+                });
             }
         } catch (error) {
             console.error("Failed to fetch data:", error);
@@ -154,6 +163,15 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }, [refreshData]);
 
     const addBooking = useCallback(async (bookingData: Omit<Booking, "id" | "status">) => {
+        const newBooking: Booking = {
+            ...bookingData,
+            id: `temp_${Date.now()}`,
+            status: "Pending"
+        };
+
+        // Optimistic update
+        setBookings(prev => [newBooking, ...prev]);
+
         try {
             await apiClient.post("/api/bookings", {
                 ...bookingData,
@@ -164,7 +182,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
             });
             await refreshData();
         } catch (error) {
-            console.error("Failed to add booking:", error);
+            console.error("Failed to add booking to backend, kept in local state:", error);
         }
     }, [refreshData]);
 
@@ -172,8 +190,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
         try {
             // Ideally we'd have a PATCH /api/bookings/:id
             // For now let's assume PATCH /api/bookings works with id in body
-             await apiClient.patch("/api/bookings", { id, status: status.toLowerCase() });
-             await refreshData();
+            await apiClient.patch("/api/bookings", { id, status: status.toLowerCase() });
+            await refreshData();
         } catch (error) {
             console.error("Failed to update booking status:", error);
         }

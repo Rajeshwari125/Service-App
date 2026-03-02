@@ -81,51 +81,68 @@ export function BookingModal({ service, open, onOpenChange }: BookingModalProps)
         <Drawer.Root open={open} onOpenChange={onOpenChange}>
             <Drawer.Portal>
                 <Drawer.Overlay className="fixed inset-0 bg-black/40" />
-                <Drawer.Content className="fixed bottom-0 left-0 right-0 mt-24 flex h-[90%] flex-col rounded-t-[10px] bg-background outline-none">
-                    <div className="flex-1 overflow-y-auto rounded-t-[10px] bg-background p-4">
+                <Drawer.Content className="fixed bottom-0 left-0 right-0 mt-24 flex h-[85%] flex-col rounded-t-[2.5rem] bg-background outline-none shadow-2xl">
+                    <div className="flex-1 overflow-y-auto rounded-t-[2.5rem] bg-background p-6 scrollbar-hide">
                         {/* Handle */}
-                        <div className="mx-auto mb-8 h-1.5 w-12 flex-shrink-0 rounded-full bg-muted" />
+                        <div className="mx-auto mb-6 h-1 w-12 flex-shrink-0 rounded-full bg-slate-200" />
 
                         <div className="mx-auto max-w-md">
-                            <Drawer.Title className="mb-4 text-xl font-bold">
-                                Book Service
-                            </Drawer.Title>
+                            <div className="text-center mb-8">
+                                <Drawer.Title className="text-2xl font-black text-slate-900 tracking-tight">
+                                    Book Service
+                                </Drawer.Title>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Select your preferred slot</p>
+                            </div>
 
                             {/* Service Summary */}
-                            <div className="mb-6 rounded-xl border border-border bg-card p-4">
-                                <h3 className="font-semibold">{service.title}</h3>
-                                <p className="text-sm text-muted-foreground">by {service.providerName}</p>
-                                <div className="mt-2 flex justify-between text-sm">
-                                    <span className="font-medium">Total Amount:</span>
-                                    <span className="font-bold text-primary">₹{service.price}</span>
+                            <div className="mb-8 rounded-3xl border border-slate-100 bg-slate-50/50 p-5 shadow-sm">
+                                <div className="flex justify-between items-start gap-4">
+                                    <div>
+                                        <h3 className="font-black text-slate-900">{service.title}</h3>
+                                        <p className="text-xs font-bold text-slate-400 mt-0.5">by {service.providerName}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Amount</p>
+                                        <p className="text-xl font-black text-primary">₹{service.price}</p>
+                                    </div>
                                 </div>
                             </div>
 
                             {/* Date Selection */}
-                            <div className="mb-6">
-                                <label className="mb-2 block text-sm font-medium">Select Date</label>
-                                <div className="rounded-xl border border-border p-3">
+                            <div className="mb-8">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center">
+                                        <CalendarIcon size={16} className="text-primary" />
+                                    </div>
+                                    <label className="text-sm font-black text-slate-900">Select Date</label>
+                                </div>
+                                <div className="rounded-3xl border border-slate-100 p-4 bg-white shadow-sm overflow-hidden">
                                     <Calendar
                                         mode="single"
                                         selected={date}
                                         onSelect={setDate}
                                         disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
-                                        className="mx-auto rounded-md border-none"
+                                        className="mx-auto rounded-md border-none scale-95 origin-center"
                                     />
                                 </div>
                             </div>
 
                             {/* Time Selection */}
-                            <div className="mb-8">
-                                <label className="mb-2 block text-sm font-medium">Select Time</label>
+                            <div className="mb-10">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <div className="h-8 w-8 rounded-xl bg-amber-50 flex items-center justify-center">
+                                        <Clock size={16} className="text-amber-500" />
+                                    </div>
+                                    <label className="text-sm font-black text-slate-900">Select Time</label>
+                                </div>
                                 <div className="grid grid-cols-3 gap-2">
                                     {timeSlots.map((slot) => (
                                         <button
                                             key={slot}
                                             onClick={() => setTime(slot)}
-                                            className={`rounded-lg border px-2 py-2 text-xs font-medium transition-colors ${time === slot
-                                                    ? "border-primary bg-primary text-primary-foreground"
-                                                    : "border-input hover:bg-accent hover:text-accent-foreground"
+                                            className={`rounded-xl border py-3 text-[11px] font-black transition-all active:scale-95 ${time === slot
+                                                ? "border-primary bg-primary text-white shadow-lg shadow-primary/20"
+                                                : "border-slate-100 bg-slate-50 text-slate-600 hover:border-slate-200"
                                                 }`}
                                         >
                                             {slot}
@@ -135,16 +152,16 @@ export function BookingModal({ service, open, onOpenChange }: BookingModalProps)
                             </div>
 
                             {/* Sticky Bottom Actions */}
-                            <div className=" pb-8">
+                            <div className="pb-12 text-center">
                                 <Button
-                                    className="w-full rounded-xl py-6 text-lg font-bold"
+                                    className="w-full rounded-2xl py-7 text-sm font-black uppercase tracking-widest shadow-xl shadow-primary/20 active:scale-95 transition-all"
                                     onClick={handleBooking}
                                     disabled={loading || !date || !time}
                                 >
                                     {loading ? "Confirming..." : "Confirm Booking"}
                                 </Button>
-                                <p className="mt-3 text-center text-xs text-muted-foreground">
-                                    No payment required now. Pay after service.
+                                <p className="mt-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center justify-center gap-2">
+                                    <div className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Pay after service
                                 </p>
                             </div>
                         </div>

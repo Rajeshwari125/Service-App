@@ -31,6 +31,7 @@ export const viewport: Viewport = {
 };
 
 import { SearchProvider } from "@/lib/search-context";
+import { ChatProvider } from "@/lib/chat-context";
 
 export default function RootLayout({
   children,
@@ -44,13 +45,15 @@ export default function RootLayout({
           <AuthProvider>
             <DataProvider>
               <ReviewProvider>
-                <SearchProvider>
-                  <div className="flex min-h-screen flex-col items-center justify-center">
-                    <div className="relative flex h-screen w-full max-w-md flex-col overflow-hidden bg-background shadow-2xl">
-                      {children}
+                <ChatProvider>
+                  <SearchProvider>
+                    <div className="flex min-h-screen flex-col items-center justify-center">
+                      <div className="relative flex h-screen w-full max-w-md flex-col overflow-hidden bg-background shadow-2xl">
+                        {children}
+                      </div>
                     </div>
-                  </div>
-                </SearchProvider>
+                  </SearchProvider>
+                </ChatProvider>
               </ReviewProvider>
             </DataProvider>
           </AuthProvider>

@@ -12,7 +12,8 @@ import {
     CheckCircle2,
     AlertCircle,
     ShoppingBag,
-    Briefcase
+    Briefcase,
+    MessageCircle
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useData } from "@/lib/data-context";
@@ -49,31 +50,31 @@ export default function OrdersPage() {
     return (
         <div className="flex h-full flex-col bg-slate-50/50 animate-fade-in overflow-hidden">
             {/* Premium Header */}
-            <div className="bg-white px-6 pt-10 pb-6 border-b border-slate-100 shadow-sm relative z-10">
+            <div className="bg-white px-6 pt-12 pb-5 border-b border-slate-100 shadow-sm relative z-10">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <Link
                             href="/"
-                            className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-lg active:scale-90 transition-all"
+                            className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-lg active:scale-90 transition-all"
                         >
-                            <ArrowLeft size={20} />
+                            <ArrowLeft size={18} />
                         </Link>
                         <div>
-                            <h1 className="text-xl font-black text-slate-900 tracking-tight">Active Bookings</h1>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tracking Live Status</p>
+                            <h1 className="text-xl font-black text-slate-900 tracking-tight leading-none">Active Bookings</h1>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Tracking Live Status</p>
                         </div>
                     </div>
-                    <div className="h-12 w-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary">
-                        <Briefcase size={22} />
+                    <div className="h-11 w-11 rounded-2xl bg-primary/5 flex items-center justify-center text-primary border border-primary/10">
+                        <Briefcase size={20} />
                     </div>
                 </div>
 
                 {/* Tab Navigator */}
-                <div className="flex mt-8 p-1 bg-slate-100/80 rounded-2xl border border-slate-100">
+                <div className="flex mt-6 p-1 bg-slate-100/80 rounded-2xl border border-slate-100/50">
                     <button
                         onClick={() => setActiveTab("services")}
-                        className={`flex-1 py-3 text-xs font-black rounded-xl transition-all duration-300 uppercase tracking-widest ${activeTab === "services"
-                            ? "bg-white text-slate-900 shadow-md scale-[1.02]"
+                        className={`flex-1 py-2.5 text-[10px] font-black rounded-xl transition-all duration-300 uppercase tracking-[0.15em] ${activeTab === "services"
+                            ? "bg-white text-slate-900 shadow-sm"
                             : "text-slate-400 hover:text-slate-600"
                             }`}
                     >
@@ -81,8 +82,8 @@ export default function OrdersPage() {
                     </button>
                     <button
                         onClick={() => setActiveTab("rentals")}
-                        className={`flex-1 py-3 text-xs font-black rounded-xl transition-all duration-300 uppercase tracking-widest ${activeTab === "rentals"
-                            ? "bg-white text-slate-900 shadow-md scale-[1.02]"
+                        className={`flex-1 py-2.5 text-[10px] font-black rounded-xl transition-all duration-300 uppercase tracking-[0.15em] ${activeTab === "rentals"
+                            ? "bg-white text-slate-900 shadow-sm"
                             : "text-slate-400 hover:text-slate-600"
                             }`}
                     >
@@ -92,51 +93,54 @@ export default function OrdersPage() {
             </div>
 
             {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto px-4 py-8 scrollbar-hide pb-32">
+            <div className="flex-1 overflow-y-auto px-4 py-6 scrollbar-hide pb-32">
                 <div className="flex flex-col gap-5">
                     {orders.map((order, idx) => (
                         <div
                             key={order.id}
-                            className="group relative overflow-hidden rounded-[2rem] border border-white bg-white p-5 shadow-xl shadow-slate-200/50 animate-slide-up"
+                            className="group relative overflow-hidden rounded-[2.5rem] border border-white bg-white p-6 shadow-xl shadow-slate-200/40 animate-slide-up"
                             style={{ animationDelay: `${idx * 100}ms` }}
                         >
                             <div className="flex flex-col gap-4">
                                 <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <div className="h-10 w-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-400">
-                                            {activeTab === "services" ? <Briefcase size={20} /> : <Package size={20} />}
+                                    <div className="flex items-center gap-3">
+                                        <div className="h-12 w-12 flex items-center justify-center rounded-2xl bg-slate-50 text-slate-400 border border-slate-100/50">
+                                            {activeTab === "services" ? <Briefcase size={22} /> : <Package size={22} />}
                                         </div>
                                         <div>
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Order ID: {order.id.slice(-6)}</p>
-                                            <p className="text-sm font-black text-slate-900">{order.serviceTitle}</p>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">ID: {order.id.slice(-6).toUpperCase()}</p>
+                                            <p className="text-base font-black text-slate-900 leading-tight">{order.serviceTitle}</p>
                                         </div>
                                     </div>
-                                    <div className={`rounded-xl px-3 py-1.5 text-[9px] font-black uppercase tracking-widest border shadow-sm ${getStatusStyles(order.status)}`}>
+                                    <div className={`rounded-full px-3 py-1.5 text-[9px] font-black uppercase tracking-widest border shadow-sm ${getStatusStyles(order.status)}`}>
                                         {order.status}
                                     </div>
                                 </div>
 
                                 <div className="flex items-center justify-between py-1 px-1">
-                                    <div className="flex flex-col gap-1.5">
-                                        <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400">
-                                            <Calendar size={12} className="text-slate-300" /> {order.date}
+                                    <div className="flex flex-col gap-2">
+                                        <div className="flex items-center gap-2 text-[11px] font-bold text-slate-500">
+                                            <Calendar size={13} className="text-primary/40" /> {order.date}
                                         </div>
-                                        <div className="flex items-center gap-2 text-[10px] font-bold text-slate-400">
-                                            <Clock size={12} className="text-slate-300" /> {order.time}
+                                        <div className="flex items-center gap-2 text-[11px] font-bold text-slate-500">
+                                            <Clock size={13} className="text-primary/40" /> {order.time}
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Total Paid</p>
-                                        <p className="text-lg font-black text-slate-900">₹{order.amount}</p>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Total Bill</p>
+                                        <p className="text-xl font-black text-slate-900">₹{order.amount}</p>
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-3 pt-4 border-t border-slate-50">
-                                    <button className="flex-1 py-3.5 rounded-[1.2rem] bg-slate-900 text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-lg active:scale-95 transition-all">
-                                        Track Progress
-                                    </button>
-                                    <button className="h-12 w-12 flex items-center justify-center rounded-[1.2rem] border border-slate-100 text-slate-400 hover:bg-slate-50 active:scale-90 transition-all">
-                                        <AlertCircle size={20} />
+                                <div className="flex items-center gap-3 pt-5 border-t border-slate-50">
+                                    <Link
+                                        href={`/chat/${order.id}`}
+                                        className="flex items-center gap-2 flex-1 py-4 rounded-2xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-lg active:scale-95 transition-all justify-center"
+                                    >
+                                        <MessageCircle size={15} /> Chat Support
+                                    </Link>
+                                    <button className="h-14 w-14 flex items-center justify-center rounded-2xl border border-slate-100 text-slate-400 hover:bg-slate-50 active:scale-90 transition-all">
+                                        <AlertCircle size={22} />
                                     </button>
                                 </div>
                             </div>
@@ -144,22 +148,22 @@ export default function OrdersPage() {
                     ))}
 
                     {orders.length === 0 && (
-                        <div className="flex flex-col items-center justify-center py-20 px-10 text-center animate-fade-in">
-                            <div className="relative mb-6">
-                                <div className="h-24 w-24 rounded-[2.5rem] bg-white shadow-xl shadow-slate-200/50 flex items-center justify-center border border-slate-50">
-                                    <ShoppingBag size={40} className="text-slate-200" />
+                        <div className="flex flex-col items-center justify-center py-24 px-10 text-center animate-fade-in my-auto">
+                            <div className="relative mb-8">
+                                <div className="h-28 w-28 rounded-[3rem] bg-white shadow-2xl shadow-slate-200/50 flex items-center justify-center border border-slate-50/50">
+                                    <ShoppingBag size={48} className="text-slate-100" />
                                 </div>
-                                <div className="absolute -bottom-2 -right-2 h-10 w-10 rounded-2xl bg-slate-100 flex items-center justify-center border-4 border-white">
-                                    <Clock size={16} className="text-slate-400" />
+                                <div className="absolute -bottom-2 -right-2 h-12 w-12 rounded-2xl bg-primary/5 flex items-center justify-center border-4 border-white shadow-lg">
+                                    <Clock size={20} className="text-primary/30" />
                                 </div>
                             </div>
-                            <h3 className="text-lg font-black text-slate-900 tracking-tight">Empty Station</h3>
-                            <p className="mt-2 text-xs font-bold text-slate-400 leading-relaxed max-w-[200px]">
-                                You haven't placed any {activeTab} bookings yet.
+                            <h3 className="text-2xl font-black text-slate-900 tracking-tight">Empty Station</h3>
+                            <p className="mt-3 text-xs font-bold text-slate-400 leading-relaxed max-w-[220px]">
+                                Your {activeTab} booking log is currently empty.
                             </p>
                             <Link
                                 href="/"
-                                className="mt-8 rounded-2xl bg-white border border-slate-900 px-8 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-900 shadow-sm active:scale-95 transition-all"
+                                className="mt-10 rounded-2xl bg-slate-900 px-10 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-white shadow-xl shadow-slate-900/20 active:scale-95 transition-all"
                             >
                                 Start Browsing
                             </Link>

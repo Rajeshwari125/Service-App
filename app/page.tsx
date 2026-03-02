@@ -115,12 +115,13 @@ export default function Page() {
             {!searchQuery && (
               <>
                 <OffersCarousel />
+                <FeaturedServices />
                 <div className="pt-2">
                   <CategoriesSection />
                 </div>
               </>
             )}
-            <FeaturedServices />
+            {searchQuery && <FeaturedServices />}
           </div>
         )}
       </main>

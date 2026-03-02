@@ -31,6 +31,13 @@ const offers = [
     bg: "from-[#553c9a] to-[#805ad5]",
     badge: "EARN",
   },
+  {
+    id: 5,
+    title: "20% Off Equipment Rent",
+    subtitle: "Cameras, Tools & more",
+    bg: "from-[#c05621] to-[#dd6b20]",
+    badge: "RENTAL",
+  },
 ];
 
 export function OffersCarousel() {
@@ -79,9 +86,8 @@ export function OffersCarousel() {
               key={i}
               type="button"
               onClick={() => setCurrent(i)}
-              className={`h-2 rounded-full transition-all ${
-                i === current ? "w-6 bg-white" : "w-2 bg-white/40"
-              }`}
+              className={`h-2 rounded-full transition-all ${i === current ? "w-6 bg-white" : "w-2 bg-white/40"
+                }`}
               aria-label={`Go to offer ${i + 1}`}
             />
           ))}

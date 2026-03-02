@@ -569,6 +569,54 @@ export default function SettingsPage() {
                         </div>
                     </section>
 
+                    {/* Recent Orders Inline */}
+                    <section className="flex flex-col gap-3 animate-slide-up" style={{ animationDelay: '150ms' }}>
+                        <div className="flex items-center justify-between px-2">
+                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Recent Orders</p>
+                            <Link href="/orders" className="text-[10px] font-black text-primary uppercase tracking-wider">View All</Link>
+                        </div>
+                        {customerBookings.length === 0 ? (
+                            <div className="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-8 flex flex-col items-center gap-2">
+                                <div className="h-12 w-12 rounded-2xl bg-slate-50 flex items-center justify-center">
+                                    <Package size={22} className="text-slate-300" />
+                                </div>
+                                <p className="text-xs font-bold text-slate-400">No bookings yet</p>
+                                <Link href="/browse/service/all" className="text-[10px] font-black text-primary uppercase tracking-wider mt-1">
+                                    Book a Service →
+                                </Link>
+                            </div>
+                        ) : (
+                            <div className="flex flex-col gap-2">
+                                {customerBookings.slice(0, 5).map((booking, i) => {
+                                    const statusColors: Record<string, string> = {
+                                        Completed: "bg-emerald-50 text-emerald-600",
+                                        Pending: "bg-amber-50 text-amber-600",
+                                        Accepted: "bg-blue-50 text-blue-600",
+                                        Cancelled: "bg-red-50 text-red-500",
+                                    };
+                                    const color = statusColors[booking.status] || "bg-slate-50 text-slate-500";
+                                    return (
+                                        <div key={(booking as any).id || i} className="bg-white rounded-2xl shadow-sm border border-slate-100 p-4 flex items-center gap-3 animate-slide-up" style={{ animationDelay: `${i * 50}ms` }}>
+                                            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                                <Package size={16} className="text-primary" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-black text-slate-900 truncate">{(booking as any).serviceName || (booking as any).itemName || "Booking"}</p>
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+                                                    {(booking as any).date ? new Date((booking as any).date).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "–"}
+                                                </p>
+                                            </div>
+                                            <div className="flex flex-col items-end gap-1">
+                                                <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider ${color}`}>{booking.status}</span>
+                                                {(booking as any).amount ? <span className="text-xs font-black text-slate-900">₹{(booking as any).amount}</span> : null}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </section>
+
                     {/* Preferences */}
                     <section className="flex flex-col gap-3 animate-slide-up" style={{ animationDelay: '200ms' }}>
                         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 px-2">Preferences</p>
