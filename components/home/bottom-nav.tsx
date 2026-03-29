@@ -28,7 +28,7 @@ export function BottomNav() {
     const navItems = user?.role === "employee" ? employeeNavItems : customerNavItems;
 
     return (
-        <div className="sticky bottom-0 z-40 flex w-full items-center justify-around border-t border-border bg-card/80 px-2 py-3 backdrop-blur-lg">
+        <div className="sticky bottom-0 z-40 flex w-full items-center justify-around border-t border-border bg-card/85 px-2 pt-3 pb-8 backdrop-blur-xl">
             {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href;

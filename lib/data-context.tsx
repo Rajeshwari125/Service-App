@@ -91,7 +91,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
                 id: s._id,
                 price: s.pricing.amount,
                 priceUnit: s.pricing.unit,
-                image: s.media?.[0] || "",
+                image: s.title?.toLowerCase().includes('cleaning')
+                    ? 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=800&auto=format&fit=crop&q=80'
+                    : (s.media && s.media.length > 0 && s.media[0]) 
+                        ? s.media[0] 
+                        : `https://via.placeholder.com/800x600?text=${encodeURIComponent(s.title || "Service")}`,
                 reviews: s.reviewCount || 0,
                 providerName: s.providerId?.name || "Unknown",
                 providerId: s.providerId?._id || s.providerId
@@ -105,9 +109,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
                 const mappedBookings = fetchedBookings.map((b: any) => ({
                     ...b,
                     id: b._id,
-                    serviceTitle: b.serviceId?.title || "Unknown Service",
-                    customerName: b.customerId?.name || "Unknown Customer",
-                    providerName: b.providerId?.name || "Unknown Provider",
+                    serviceTitle: b.serviceTitle || b.serviceId?.title || "Unknown Service",
+                    customerName: b.customerName || b.customerId?.name || "Unknown Customer",
+                    providerName: b.providerName || b.providerId?.name || "Unknown Provider",
                     date: new Date(b.bookingDate).toLocaleDateString(),
                     time: b.timeSlot || "",
                     amount: b.totalAmount,

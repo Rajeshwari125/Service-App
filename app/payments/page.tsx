@@ -9,7 +9,7 @@ export default function PaymentsPage() {
     const { user } = useAuth();
     const { bookings } = useData();
 
-    const isEmployee = user?.role === "employee";
+    const isEmployee = user?.role === "employee" || user?.role === "provider";
 
     // Real data
     const userBookings = isEmployee

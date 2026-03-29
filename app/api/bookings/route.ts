@@ -17,11 +17,7 @@ export async function GET(request: Request) {
         query = { customerId: userId };
       }
     }
-    const bookings = await Booking.find(query)
-      .populate('serviceId')
-      .populate('customerId', 'name')
-      .populate('providerId', 'name')
-      .sort({ createdAt: -1 });
+    const bookings = await Booking.find(query).sort({ createdAt: -1 });
     return NextResponse.json(bookings);
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });

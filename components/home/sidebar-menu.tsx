@@ -21,6 +21,10 @@ import {
   LayoutDashboard,
   Package,
   Star,
+  Users,
+  BarChart3,
+  Database,
+  Key,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -57,8 +61,26 @@ export function SidebarMenu({ isOpen, onClose }: SidebarMenuProps) {
     { icon: HelpCircle, label: "Help Center", href: "/support" },
   ];
 
+  // Admin navigation items
+  const adminMenuItems = [
+    { icon: LayoutDashboard, label: "Admin Console", href: "/" },
+    { icon: Users, label: "Manage Users", href: "/admin/users" },
+    { icon: Package, label: "Approve Listings", href: "/admin/listings" },
+    { icon: ClipboardList, label: "System Bookings", href: "/admin/all-bookings" },
+    { icon: BarChart3, label: "Growth Analytics", href: "/admin/analytics" },
+    { icon: Database, label: "Database Health", href: "/admin/database" },
+    { icon: Bell, label: "Alerts", href: "/notifications" },
+    { icon: Settings, label: "Site Settings", href: "/settings" },
+  ];
+
   const isEmployee = user?.role === "employee" || user?.role === "provider";
-  const menuItems = isEmployee ? employeeMenuItems : customerMenuItems;
+  const isAdmin = user?.role === "admin";
+  
+  const menuItems = isAdmin 
+    ? adminMenuItems 
+    : isEmployee 
+      ? employeeMenuItems 
+      : customerMenuItems;
 
   const handleLogout = () => {
     logout();
@@ -88,9 +110,11 @@ export function SidebarMenu({ isOpen, onClose }: SidebarMenuProps) {
         <div className="relative overflow-hidden bg-slate-950 px-6 py-10 text-white">
           <div className="relative z-10 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-[2rem] bg-gradient-to-br from-primary to-accent p-[2px]">
-                <div className="flex h-full w-full items-center justify-center rounded-[1.9rem] bg-slate-900 border border-white/10">
-                  {user?.role === "admin" ? (
+              <div className="flex h-16 w-16 items-center justify-center rounded-[2.2rem] bg-gradient-to-br from-primary to-accent p-[2px] overflow-hidden">
+                <div className="flex h-full w-full items-center justify-center rounded-[2.1rem] bg-slate-900 border border-white/10 overflow-hidden">
+                  {user?.profileImage ? (
+                    <img src={user.profileImage} alt="Profile" className="h-full w-full object-cover" />
+                  ) : user?.role === "admin" ? (
                     <Shield size={28} className="text-primary" />
                   ) : (
                     <User size={28} className="text-primary" />

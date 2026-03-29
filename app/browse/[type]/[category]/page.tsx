@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { useData, type Service, type Rental } from "@/lib/data-context";
 import { BookingModal } from "@/components/booking/booking-modal";
 import { useSearch } from "@/lib/search-context";
+import { useFavorites } from "@/lib/favorites-context";
 import { staticServices } from "@/lib/static-services";
 import { staticRentals } from "@/lib/static-rentals";
 
@@ -33,10 +34,12 @@ export default function BrowsePage() {
 
     const { services, rentals } = useData();
     const { searchQuery, setSearchQuery } = useSearch();
+    const { toggleFavorite, isFavorite } = useFavorites();
     const [filterOpen, setFilterOpen] = useState(false);
     const [selectedService, setSelectedService] = useState<Service | null>(null);
     const [bookingOpen, setBookingOpen] = useState(false);
     const [isSearchVisible, setIsSearchVisible] = useState(!!searchQuery);
+    const [subFilter, setSubFilter] = useState<"all" | "premium" | "value">("all");
 
     // Determine title from category slug
     const title = categoryQuery
@@ -45,9 +48,9 @@ export default function BrowsePage() {
 
     const isService = type === "service";
 
-    // Merge API data with static data (API data takes precedence, static fills gaps)
-    const allServices = services.length > 0 ? services : (staticServices as any[]);
-    const allRentals = rentals.length > 0 ? rentals : (staticRentals as any[]);
+    // Merge API data with static data (API data + static data to ensure it's always full)
+    const allServices = [...services, ...(staticServices as any[])];
+    const allRentals = [...rentals, ...(staticRentals as any[])];
 
     // Filter items based on category
     const categoryItems = isService
@@ -55,7 +58,7 @@ export default function BrowsePage() {
         : allRentals.filter((r: any) => categoryQuery === "all" || r.category.toLowerCase().includes((categoryQuery || "").toLowerCase().replace(/-/g, " ")));
 
     // further filter by search query
-    const items = searchQuery
+    let items = searchQuery
         ? categoryItems.filter((item: any) => {
             const name = item.name || item.title || "";
             const provider = item.providerName || "";
@@ -66,6 +69,14 @@ export default function BrowsePage() {
                 category.toLowerCase().includes(searchLower);
         })
         : categoryItems;
+
+    // Apply sub-filters
+    if (subFilter === "premium") {
+        items = items.filter((i: any) => (i.rating || 0) >= 4.7);
+    } else if (subFilter === "value") {
+        // Items below 1000 or with good reviews but lower price
+        items = items.filter((i: any) => (i.price || 0) <= 800);
+    }
 
     const handleBook = (service: Service) => {
         setSelectedService(service);
@@ -140,13 +151,28 @@ export default function BrowsePage() {
 
                 {/* Horizontal Category Pill Scroll */}
                 <div className="flex gap-3 overflow-x-auto py-6 scrollbar-hide">
-                    <button className="flex-shrink-0 px-6 py-2.5 rounded-2xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest shadow-lg shadow-slate-900/10 active:scale-95 transition-all">
+                    <button 
+                        onClick={() => setSubFilter("all")}
+                        className={`flex-shrink-0 px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-all ${
+                            subFilter === "all" ? "bg-slate-900 text-white shadow-slate-900/10" : "bg-white border border-slate-100 text-slate-400"
+                        }`}
+                    >
                         Discover All
                     </button>
-                    <button className="flex-shrink-0 px-6 py-2.5 rounded-2xl bg-white border border-slate-100 text-slate-400 text-[10px] font-black uppercase tracking-widest hover:text-slate-900 active:scale-95 transition-all">
+                    <button 
+                        onClick={() => setSubFilter("premium")}
+                        className={`flex-shrink-0 px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all ${
+                            subFilter === "premium" ? "bg-slate-900 text-white shadow-lg shadow-slate-900/10" : "bg-white border border-slate-100 text-slate-400"
+                        }`}
+                    >
                         Premium Tier
                     </button>
-                    <button className="flex-shrink-0 px-6 py-2.5 rounded-2xl bg-white border border-slate-100 text-slate-400 text-[10px] font-black uppercase tracking-widest hover:text-slate-900 active:scale-95 transition-all">
+                    <button 
+                        onClick={() => setSubFilter("value")}
+                        className={`flex-shrink-0 px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all ${
+                            subFilter === "value" ? "bg-slate-900 text-white shadow-lg shadow-slate-900/10" : "bg-white border border-slate-100 text-slate-400"
+                        }`}
+                    >
                         Best Value
                     </button>
                 </div>
@@ -178,8 +204,18 @@ export default function BrowsePage() {
                                         </div>
                                     )}
                                 </div>
-                                <button className="absolute top-4 right-4 h-10 w-10 flex items-center justify-center rounded-2xl bg-white/20 backdrop-blur-md border border-white/20 text-white hover:bg-rose-500 hover:text-white transition-all">
-                                    <Heart size={18} />
+                                <button 
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        toggleFavorite(item.id, isService ? "service" : "rental");
+                                        toast.success(isFavorite(item.id) ? "Removed from Shortlist" : "Added to Shortlist");
+                                    }}
+                                    className={`absolute top-4 right-4 h-10 w-10 flex items-center justify-center rounded-2xl backdrop-blur-md border border-white/20 transition-all ${
+                                        isFavorite(item.id) ? "bg-rose-500 text-white shadow-lg shadow-rose-200" : "bg-white/20 text-white hover:bg-rose-500 hover:text-white"
+                                    }`}
+                                >
+                                    <Heart size={18} className={isFavorite(item.id) ? "fill-current" : ""} />
                                 </button>
                             </div>
 

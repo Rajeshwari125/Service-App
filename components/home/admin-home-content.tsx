@@ -11,9 +11,11 @@ import {
   BarChart3,
   Activity,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export function AdminHomeContent() {
   const { users } = useAuth();
+  const router = useRouter();
 
   const customers = users.filter((u) => u.role === "customer");
   const employees = users.filter((u) => u.role === "employee");
@@ -96,15 +98,16 @@ export function AdminHomeContent() {
         <h3 className="mb-4 px-1 text-sm font-black text-slate-900 uppercase tracking-widest">Operational Gear</h3>
         <div className="grid grid-cols-3 gap-4">
           {[
-            { icon: Users, label: "Users", color: "text-blue-600", bg: "bg-blue-100" },
-            { icon: BarChart3, label: "Stats", color: "text-purple-600", bg: "bg-purple-100" },
-            { icon: Activity, label: "Logs", color: "text-rose-600", bg: "bg-rose-100" },
+            { icon: Users, label: "Users", color: "text-blue-600", bg: "bg-blue-100", href: "/admin/users" },
+            { icon: BarChart3, label: "Stats", color: "text-purple-600", bg: "bg-purple-100", href: "/admin/analytics" },
+            { icon: Activity, label: "Logs", color: "text-rose-600", bg: "bg-rose-100", href: "/admin/database" },
           ].map((action) => {
             const Icon = action.icon;
             return (
               <button
                 key={action.label}
                 type="button"
+                onClick={() => router.push(action.href)}
                 className="flex flex-col items-center gap-3 rounded-[2rem] bg-white p-5 border border-slate-100 shadow-sm active:scale-95 transition-all"
               >
                 <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${action.bg}`}>

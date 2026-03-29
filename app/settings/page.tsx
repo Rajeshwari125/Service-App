@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -28,6 +28,7 @@ import {
     TrendingUp,
     Package,
     CheckCircle2,
+    Camera,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { useData } from "@/lib/data-context";
@@ -51,17 +52,35 @@ export default function SettingsPage() {
     const { getProviderReviews } = useReviews();
     const router = useRouter();
     const { theme, toggleTheme } = useTheme();
-
     const [isEditing, setIsEditing] = useState(false);
     const [name, setName] = useState(user?.name || "");
     const [mobile, setMobile] = useState(user?.mobile || "");
     const [bookingNotify, setBookingNotify] = useState(true);
     const [location, setLocation] = useState("Madurai, India");
+    const [profileImage, setProfileImage] = useState(user?.profileImage || "");
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const cities = ["Madurai, India", "Chennai, India", "Coimbatore, India", "Bangalore, India", "Mumbai, India", "Delhi, India"];
 
+    useEffect(() => {
+        if (!isEditing) {
+            setProfileImage(user?.profileImage || "");
+        }
+    }, [user, isEditing]);
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setProfileImage(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const handleSaveProfile = () => {
-        updateUser({ name, mobile });
+        updateUser({ name, mobile, profileImage });
         setIsEditing(false);
         toast.success("Profile updated successfully");
     };
@@ -72,12 +91,17 @@ export default function SettingsPage() {
         toast.success("Logged out successfully");
     };
 
+    useEffect(() => {
+        if (!user) {
+            router.push("/");
+        }
+    }, [user, router]);
+
     if (!user) {
-        router.push("/");
         return null;
     }
 
-    const isEmployee = user.role === "employee";
+    const isEmployee = user.role === "employee" || user.role === "provider";
 
     // Employee stats
     const providerServices = services.filter(s => s.providerId === user.id);
@@ -135,8 +159,28 @@ export default function SettingsPage() {
                         {/* Profile Card */}
                         <div className="flex items-center gap-4">
                             <div className="relative">
-                                <div className="h-20 w-20 rounded-[1.5rem] bg-gradient-to-br from-primary/40 to-emerald-400/40 flex items-center justify-center border-2 border-white/20 shadow-2xl backdrop-blur-sm">
-                                    <User size={36} className="text-white/80" />
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    onChange={handleImageChange}
+                                    className="hidden"
+                                    accept="image/*"
+                                />
+                                <div 
+                                    className="relative h-20 w-20 rounded-[1.5rem] bg-gradient-to-br from-primary/40 to-emerald-400/40 flex items-center justify-center border-2 border-white/20 shadow-2xl backdrop-blur-sm overflow-hidden cursor-pointer"
+                                    onClick={() => isEditing && fileInputRef.current?.click()}
+                                >
+                                    {profileImage ? (
+                                        <img src={profileImage} alt="Profile" className="h-full w-full object-cover" />
+                                    ) : (
+                                        <User size={36} className="text-white/80" />
+                                    )}
+                                    
+                                    {isEditing && (
+                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                            <Camera size={20} className="text-white" />
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-full bg-emerald-500 flex items-center justify-center border-2 border-slate-900">
                                     <CheckCircle2 size={12} className="text-white" />
@@ -170,7 +214,7 @@ export default function SettingsPage() {
                                                 Service Partner
                                             </span>
                                             <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-[9px] font-black uppercase text-emerald-300 tracking-widest border border-emerald-500/20">
-                                                ID: {user.employeeId}
+                                                ID: {user.employeeId || `P-${user.id.slice(-4)}`}
                                             </span>
                                         </div>
                                     </>
@@ -462,8 +506,28 @@ export default function SettingsPage() {
                 {/* Avatar + Info */}
                 <div className="relative flex items-center gap-4">
                     <div className="relative">
-                        <div className="h-20 w-20 rounded-[1.5rem] bg-white/20 backdrop-blur-sm flex items-center justify-center border-2 border-white/30">
-                            <User size={36} className="text-white" />
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            onChange={handleImageChange}
+                            className="hidden"
+                            accept="image/*"
+                        />
+                        <div 
+                            className="relative h-20 w-20 rounded-[1.5rem] bg-white/20 backdrop-blur-sm flex items-center justify-center border-2 border-white/30 overflow-hidden cursor-pointer"
+                            onClick={() => isEditing && fileInputRef.current?.click()}
+                        >
+                            {profileImage ? (
+                                <img src={profileImage} alt="Profile" className="h-full w-full object-cover" />
+                            ) : (
+                                <User size={36} className="text-white" />
+                            )}
+                            
+                            {isEditing && (
+                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                    <Camera size={20} className="text-white" />
+                                </div>
+                            )}
                         </div>
                         <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full bg-emerald-400 flex items-center justify-center border-2 border-white shadow-lg">
                             <CheckCircle2 size={14} className="text-white" />

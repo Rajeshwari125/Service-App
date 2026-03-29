@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { Menu, User, Shield, ChevronDown, MapPin, Check, X } from "lucide-react";
 
@@ -27,6 +28,7 @@ const CITIES = [
 
 export function MobileHeader({ onMenuOpen }: MobileHeaderProps) {
   const { user } = useAuth();
+  const router = useRouter();
   const [selectedCity, setSelectedCity] = useState("Madurai");
   const [showCityPicker, setShowCityPicker] = useState(false);
 
@@ -78,11 +80,16 @@ export function MobileHeader({ onMenuOpen }: MobileHeaderProps) {
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="flex h-8 items-center gap-2 rounded-lg bg-primary-foreground/10 px-3 transition-colors hover:bg-primary-foreground/20 border border-primary-foreground/5 cursor-pointer">
-              {user?.role === "admin" ? (
-                <Shield size={14} className="text-primary-foreground" />
+            <div 
+              className="flex h-8 items-center gap-2 rounded-lg bg-primary-foreground/10 pr-3 pl-1 transition-colors hover:bg-primary-foreground/20 border border-primary-foreground/5 cursor-pointer overflow-hidden"
+              onClick={() => router.push('/settings')}
+            >
+              {user?.profileImage ? (
+                <img src={user.profileImage} alt="Profile" className="h-6 w-6 rounded-md object-cover" />
+              ) : user?.role === "admin" ? (
+                <Shield size={14} className="ml-2 text-primary-foreground" />
               ) : (
-                <User size={14} className="text-primary-foreground" />
+                <User size={14} className="ml-2 text-primary-foreground" />
               )}
               <span className="text-[11px] font-bold text-primary-foreground">
                 {user?.role === "employee"

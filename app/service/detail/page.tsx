@@ -240,7 +240,21 @@ export default function ServiceDetailPage() {
                             <p className="text-xl font-black text-primary">₹{service.price}<span className="text-xs font-bold text-muted-foreground">/{service.priceUnit}</span></p>
                         </div>
                         <Button
-                            onClick={() => setBookingOpen(true)}
+                            onClick={() => {
+                                const params = new URLSearchParams({
+                                    name: service.title || "",
+                                    price: String(service.price || 0),
+                                    provider: service.providerName || "",
+                                    category: service.category || "",
+                                    type: "service",
+                                    rating: String(avgRating || 4.5),
+                                    image: service.image || "",
+                                    id: service.id || "",
+                                    providerId: service.providerId || "",
+                                    priceUnit: service.priceUnit || "visit",
+                                });
+                                router.push(`/checkout?${params.toString()}`);
+                            }}
                             className="h-14 px-8 rounded-2xl text-base font-black shadow-lg shadow-primary/20"
                         >
                             Book Now
@@ -248,13 +262,6 @@ export default function ServiceDetailPage() {
                     </div>
                 </div>
             )}
-
-            {/* Booking Modal */}
-            <BookingModal
-                service={service}
-                open={bookingOpen}
-                onOpenChange={setBookingOpen}
-            />
         </div>
     );
 }

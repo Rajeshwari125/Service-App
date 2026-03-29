@@ -38,20 +38,20 @@ export default function Page() {
     return (
       <div className="flex h-full flex-col">
         {/* Auth Header */}
-        <div className="flex flex-col items-center bg-slate-950 px-6 pb-12 pt-16 relative overflow-hidden">
-          <div className="relative z-10 mb-6 flex h-24 w-24 items-center justify-center rounded-[2.5rem] bg-gradient-to-br from-primary to-accent p-[2px] shadow-2xl">
-            <div className="flex h-full w-full items-center justify-center rounded-[2.4rem] bg-slate-900 border border-white/10">
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <div className="flex flex-col items-center bg-slate-950 px-6 pb-16 pt-12 relative overflow-hidden">
+          <div className="relative z-10 mb-5 flex h-20 w-20 items-center justify-center rounded-[2rem] bg-gradient-to-br from-primary to-accent p-[2px] shadow-2xl">
+            <div className="flex h-full w-full items-center justify-center rounded-[1.9rem] bg-slate-900 border border-white/10">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary" />
                 <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary/40" />
                 <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary/70" />
               </svg>
             </div>
           </div>
-          <h2 className="relative z-10 text-3xl font-black text-white tracking-tighter">
+          <h2 className="relative z-10 text-2xl font-black text-white tracking-tighter">
             ServiceHub
           </h2>
-          <p className="relative z-10 mt-2 text-xs font-black uppercase tracking-[0.2em] text-white/40">
+          <p className="relative z-10 mt-1 text-[10px] font-black uppercase tracking-[0.2em] text-white/40">
             Services & Rentals on Demand
           </p>
 
@@ -61,7 +61,7 @@ export default function Page() {
         </div>
 
         {/* Auth Body */}
-        <div className="-mt-8 flex-1 rounded-t-[3rem] bg-background px-8 pt-10 shadow-2xl relative z-20">
+        <div className="-mt-10 flex-1 rounded-t-[3rem] bg-background px-8 pt-10 shadow-2xl relative z-20">
           {authView === "login" && (
             <LoginForm
               onSwitch={() => setAuthView("register")}

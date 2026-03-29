@@ -15,7 +15,7 @@ export default function ReviewsPage() {
     const { getProviderReviews } = useReviews();
     const [filter, setFilter] = useState<RatingFilter>("all");
 
-    const isEmployee = user?.role === "employee";
+    const isEmployee = user?.role === "employee" || user?.role === "provider";
     const providerReviews = isEmployee ? getProviderReviews(user?.id || "") : [];
 
     const filteredReviews = filter === "all"

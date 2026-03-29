@@ -8,6 +8,7 @@ import {
     useEffect,
     type ReactNode,
 } from "react";
+import { useAuth } from "./auth-context";
 
 export interface Review {
     id: string;
@@ -36,11 +37,62 @@ export function ReviewProvider({ children }: { children: ReactNode }) {
     const [reviews, setReviews] = useState<Review[]>([]);
     const [isLoaded, setIsLoaded] = useState(false);
 
+    const { user } = useAuth();
+
     useEffect(() => {
         const stored = localStorage.getItem("servicehub_reviews");
-        if (stored) setReviews(JSON.parse(stored));
+        let initialReviews: Review[] = [];
+        
+        if (stored) {
+            try {
+                initialReviews = JSON.parse(stored);
+            } catch (e) {
+                initialReviews = [];
+            }
+        }
+
+        if (initialReviews.length === 0 && user && (user.role === "employee" || user.role === "provider")) {
+            // Seed demo reviews for the current provider
+            initialReviews = [
+                {
+                    id: "rev-1",
+                    bookingId: "book-1",
+                    serviceId: "ser-1",
+                    customerId: "cust-1",
+                    customerName: "Anjali Sharma",
+                    providerId: user.id,
+                    rating: 5,
+                    comment: "Excellent service! The cleaning was very thorough and professional.",
+                    createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
+                },
+                {
+                    id: "rev-2",
+                    bookingId: "book-2",
+                    serviceId: "ser-2",
+                    customerId: "cust-2",
+                    customerName: "Karthik Raja",
+                    providerId: user.id,
+                    rating: 4,
+                    comment: "Very punctual and did a great job with the electrical wiring fix.",
+                    createdAt: new Date(Date.now() - 86400000 * 5).toISOString(),
+                },
+                {
+                    id: "rev-3",
+                    bookingId: "book-3",
+                    serviceId: "ser-1",
+                    customerId: "cust-3",
+                    customerName: "Meena Kumari",
+                    providerId: user.id,
+                    rating: 5,
+                    comment: "Budget friendly and reliable. Highly recommended for home services.",
+                    createdAt: new Date(Date.now() - 86400000 * 10).toISOString(),
+                }
+            ];
+        }
+        
+        setReviews(initialReviews);
         setIsLoaded(true);
-    }, []);
+    }, [user]);
 
     useEffect(() => {
         if (isLoaded) {

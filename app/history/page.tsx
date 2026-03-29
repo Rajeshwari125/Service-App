@@ -39,7 +39,7 @@ export default function HistoryPage() {
     return (
         <div className="flex h-full flex-col bg-slate-50/50 animate-fade-in overflow-hidden">
             {/* Header */}
-            <div className="bg-white px-6 pt-10 pb-6 border-b border-slate-100 shadow-sm relative z-10">
+            <div className="bg-white px-6 pt-12 pb-6 border-b border-slate-100 shadow-sm relative z-10">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <Link
@@ -49,8 +49,8 @@ export default function HistoryPage() {
                             <ArrowLeft size={20} />
                         </Link>
                         <div>
-                            <h1 className="text-xl font-black text-slate-900 tracking-tight">Booking History</h1>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            <h1 className="text-lg font-black text-slate-900 tracking-tight leading-none mb-1">Booking History</h1>
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
                                 {historyBookings.length} past {isEmployee ? "jobs" : "bookings"}
                             </p>
                         </div>

@@ -55,8 +55,8 @@ export function FeaturedServices() {
     const { searchQuery } = useSearch();
     const router = useRouter();
 
-    const allServices = services.length > 0 ? services : staticServices as any[];
-    const allRentals = rentals.length > 0 ? rentals : staticRentals as any[];
+    const allServices = [...services, ...(staticServices as any[])];
+    const allRentals = [...rentals, ...(staticRentals as any[])];
 
     const serviceItems = allServices.map((s: any) => ({ ...s, title: s.title || s.name, type: "service" as const }));
     const rentalItems = allRentals.map((r: any) => ({ ...r, title: r.name || r.title, type: "rental" as const }));

@@ -17,6 +17,7 @@ export interface User {
   name: string;
   mobile: string;
   role: UserRole;
+  profileImage?: string;
   employeeId?: string;
   password?: string;
   _id?: string; // MongoDB ID
